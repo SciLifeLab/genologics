@@ -22,7 +22,7 @@ from .entities import *
 class Lims(object):
     "LIMS interface through which all entity instances are retrieved."
 
-    VERSION = 'v1'
+    VERSION = 'v2'
 
     def __init__(self, baseuri, username, password):
         """baseuri: Base URI for the GenoLogics server, excluding

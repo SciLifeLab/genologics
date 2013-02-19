@@ -22,18 +22,33 @@ instance to the database.
 
 ### Installation
 
-The 'genologics' directory should be made accessible in your Python path,
-by whatever method suits your installation.
+pip install genologics
+
+or for the cutting edge version:
+
+pip install http://github.com/scilifelab/
 
 ### Usage
 
-The client script imports the class Lims from the genologics.lims module,
-and instantiates it with the required arguments:
+The URL and credentials should be wrintten in a new file in any
+of those config files (ordered by preference):
 
-- Base URI of the server, including the port number, but excluding
-  the '/api/v1' segment of the path.
-- User name of the account on the server.
-- Password of the account on the server.
+```
+$HOME/.genologicsrc, .genologicsrc, genologics.conf, genologics.cfg
+```
+
+or if installed system_wide:
+
+```
+/etc/genologics.conf
+```
+
+```
+[genologics]
+BASEURI=https://yourlims.example.com:8443
+USERNAME=your_username
+PASSWORD=your_password
+```
 
 ### Example scripts
 
@@ -43,13 +58,9 @@ NOTE: The example files rely on specific entities and configurations
 on the server, and use base URI, user name and password, so to work
 for your server, all these must be reviewed and modified.
 
-### Caveats
+### Known bugs 
 
-The interface has not been used much yet, so it is not properly debugged.
-
-Known issues:
 - Artifact state is part of its URL (as a query parameter).
   It is not entirely clear how to deal with this in the Lims.cache:
   Currently, an artifact that has the current state may be represented
   by a URL that includes the state, and another that does not contain it.
-

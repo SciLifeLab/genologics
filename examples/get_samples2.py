@@ -2,14 +2,14 @@
 
 Usage examples: Get some samples, and sample info.
 
-NOTE: You need to set the BASEURI, USERNAME AND PASSWORD.
+
 
 Per Kraulis, Science for Life Laboratory, Stockholm, Sweden.
 """
 
 from genologics.lims import *
 
-from genologics.site_cloud import BASEURI, USERNAME, PASSWORD
+from genologics.config import BASEURI, USERNAME, PASSWORD
 lims = Lims(BASEURI, USERNAME, PASSWORD)
 lims.check_version()
 
