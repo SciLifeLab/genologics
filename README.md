@@ -22,11 +22,15 @@ instance to the database.
 
 ### Installation
 
+```
 pip install genologics
+```
 
 or for the cutting edge version:
 
-pip install http://github.com/scilifelab/
+```
+pip install https://github.com/SciLifeLab/genologics/tarball/master
+```
 
 ### Usage
 
