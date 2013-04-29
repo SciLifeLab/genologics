@@ -44,10 +44,6 @@ for key, value in udt.items():
         value = codecs.encode(value, 'UTF-8')
     print ' ', key, '=', value
 
-print '    notes:'
-for note in project.notes:
-    print note.uri, note.content
-
 print '    files:'
 for file in project.files:
     print file.id
