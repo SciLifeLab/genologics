@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.2.1'
+version = '0.2.2'
 
 setup(name='genologics',
       version=version,
@@ -22,6 +22,8 @@ setup(name='genologics',
       keywords='genologics api rest',
       author='Per Kraulis',
       author_email='per.kraulis@scilifelab.se',
+      mantainer='Roman Valls Guimera',
+      mantainer_email='roman@scilifelab.se',
       url='https://github.com/scilifelab/genologics',
       license='GPLv3',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),

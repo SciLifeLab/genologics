@@ -312,12 +312,9 @@ class UdfDictionaryDescriptor(BaseDescriptor):
     _UDT = False
 
     def __get__(self, instance, cls):
-        try:
-            return self.value
-        except AttributeError:
-            instance.get()
-            self.value = UdfDictionary(instance, udt=self._UDT)
-            return self.value
+        instance.get()
+        self.value = UdfDictionary(instance, udt=self._UDT)
+        return self.value
 
 
 class UdtDictionaryDescriptor(UdfDictionaryDescriptor):
@@ -416,16 +413,13 @@ class InputOutputMapList(BaseDescriptor):
     """
 
     def __get__(self, instance, cls):
-        try:
-            return self.value
-        except AttributeError:
-            instance.get()
-            self.value = []
-            for node in instance.root.findall('input-output-map'):
-                input = self.get_dict(instance.lims, node.find('input'))
-                output = self.get_dict(instance.lims, node.find('output'))
-                self.value.append((input, output))
-            return self.value
+        instance.get()
+        self.value = []
+        for node in instance.root.findall('input-output-map'):
+            input = self.get_dict(instance.lims, node.find('input'))
+            output = self.get_dict(instance.lims, node.find('output'))
+            self.value.append((input, output))
+        return self.value
 
     def get_dict(self, lims, node):
         if node is None: return None
