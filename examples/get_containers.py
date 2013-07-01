@@ -38,3 +38,17 @@ for location, artifact in sorted(placements.iteritems()):
 
 containertype = container.type
 print containertype, containertype.name, containertype.x_dimension, containertype.y_dimension
+
+
+
+containers = lims.get_containers(type='Illumina Flow Cell',state='Populated')
+for container in containers:
+	print container.name
+	print container.id
+	print container.placements.keys()
+	arts=lims.get_artifacts(containername=container.name)
+	for art in arts:
+		print art.name
+		print art.type
+		print art.udf.items()
+		print art.parent_process.type.name

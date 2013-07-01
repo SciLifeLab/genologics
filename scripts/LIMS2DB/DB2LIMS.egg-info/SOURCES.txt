@@ -1,0 +1,10 @@
+flowcell_summary_uppload_LIMS.py
+helpers.py
+objectsDB.py
+project_summary_upload_LIMS.py
+setup.py
+statusDB_utils.py
+DB2LIMS.egg-info/PKG-INFO
+DB2LIMS.egg-info/SOURCES.txt
+DB2LIMS.egg-info/dependency_links.txt
+DB2LIMS.egg-info/top_level.txt
