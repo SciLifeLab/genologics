@@ -312,9 +312,9 @@ class UdfDictionaryDescriptor(BaseDescriptor):
     _UDT = False
 
     def __get__(self, instance, cls):
-        instance.get()
-        self.value = UdfDictionary(instance, udt=self._UDT)
-        return self.value
+    	instance.get()
+   	self.value = UdfDictionary(instance, udt=self._UDT)
+   	return self.value
 
 class UdtDictionaryDescriptor(UdfDictionaryDescriptor):
     """An instance attribute containing a dictionary of UDF values
@@ -330,15 +330,12 @@ class PlacementDictionaryDescriptor(TagDescriptor):
     """
 
     def __get__(self, instance, cls):
-        try:
-            return self.value
-        except AttributeError:
-            instance.get()
-            self.value = dict()
-            for node in instance.root.findall(self.tag):
-                key = node.find('value').text
-                self.value[key] = Artifact(instance.lims,uri=node.attrib['uri'])
-            return self.value
+    	instance.get()
+      	self.value = dict()
+      	for node in instance.root.findall(self.tag):
+            key = node.find('value').text
+            self.value[key] = Artifact(instance.lims,uri=node.attrib['uri'])
+       	return self.value
 
 
 class ExternalidListDescriptor(BaseDescriptor):
@@ -678,7 +675,7 @@ class Artifact(Entity):
         try:
             for tuple in self.parent_process.input_output_maps:
                 if tuple[1]['limsid'] == self.id:
-                    input_artifact_list.append(tuple[0]['limsid'])
+                    input_artifact_list.append(tuple[0]['uri'])#['limsid'])
         except:
             pass
         return input_artifact_list
