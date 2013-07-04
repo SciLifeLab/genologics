@@ -16,7 +16,7 @@ from statusDB_utils import *
 from genologics.config import BASEURI, USERNAME, PASSWORD
 import os
 import couchdb
-import bcbio.pipeline.config_loader as cl
+import bcbio.pipeline.config_utils as cl
 import time
 from datetime import date
 

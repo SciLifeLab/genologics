@@ -3,7 +3,7 @@ from uuid import uuid4
 import time
 from  datetime  import  datetime
 import couchdb
-import bcbio.pipeline.config_loader as cl
+import bcbio.pipeline.config_utils as cl
 
 def load_couch_server(config_file):
     """loads couch server with settings specified in 'config_file'"""
