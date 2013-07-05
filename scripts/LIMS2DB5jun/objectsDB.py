@@ -16,7 +16,7 @@ from statusDB_utils import *
 from genologics.config import BASEURI, USERNAME, PASSWORD
 import os
 import couchdb
-import bcbio.pipeline.config_loader as cl
+import bcbio.pipeline.config_utils as cl
 import time
 from datetime import date
 
@@ -84,6 +84,7 @@ class ProjectDB():
         if len(samples) > 0:
             self.project['samples'] = {}
             for samp in samples:
+		LOG.debug('Loading info for sample %s' % samp)
                 sampDB = SampleDB(samp.id, self.project['project_name'], 
                     self.project['application'], self.preps.info, self.runs.info, googledocs_status) #googledocs_status Temporary solution untill 20158 implemented in lims!!
                 self.project['samples'][sampDB.name] = sampDB.obj

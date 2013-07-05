@@ -9,7 +9,7 @@ from optparse import OptionParser
 import logging
 import bcbio.google
 import scilifelab.google.project_metadata as pmeta
-import bcbio.pipeline.config_loader as cl
+import bcbio.pipeline.config_utils as cl
 from bcbio.google import _to_unicode, spreadsheet
 import couchdb
 

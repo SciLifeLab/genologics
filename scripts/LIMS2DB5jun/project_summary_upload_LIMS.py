@@ -19,10 +19,10 @@ import scilifelab.log
 lims = Lims(BASEURI, USERNAME, PASSWORD)
 
 def  main(proj_name, all_projects, days, conf):
-    first_of_july = '2000-01-01'#'2013-06-30'
+    first_of_july = '2013-06-30'
     today = date.today()
     couch = load_couch_server(conf)
-    proj_db = couch['analysis']#['projects']
+    proj_db = couch['projects']
     if all_projects:
         projects = lims.get_projects()
         for proj in projects:
@@ -80,6 +80,6 @@ if __name__ == '__main__':
 
     (options, args) = parser.parse_args()
 
-    LOG = scilifelab.log.file_logger('LOG',options.conf ,'lims2db_projects.log')
+    LOG = scilifelab.log.file_logger('LOG', options.conf, 'lims2db_projects.log')
     main(options.project_name, options.all_projects, options.days, options.conf)
 
