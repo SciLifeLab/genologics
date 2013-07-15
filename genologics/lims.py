@@ -238,13 +238,13 @@ class Lims(object):
         return self._get_instances(Container, params=params)
 
     def get_processes(self, last_modified=None, type=None,
-                      inputartifactslimsid=None,
+                      inputartifactlimsid=None,
                       techfirstname=None, techlastname=None, projectname=None,
                       udf=dict(), udtname=None, udt=dict(), start_index=None):
         """Get a list of processes, filtered by keyword arguments.
         last_modified: Since the given ISO format datetime.
         type: Process type, or list of types.
-        inputartifactslimsid: Input artifact LIMS id, or list of.
+        inputartifactlimsid: Input artifact LIMS id, or list of.
         udf: dictionary of UDFs with 'UDFNAME[OPERATOR]' as keys.
         udtname: UDT name, or list of names.
         udt: dictionary of UDT UDFs with 'UDTNAME.UDFNAME[OPERATOR]' as keys
@@ -256,7 +256,7 @@ class Lims(object):
         """
         params = self._get_params(last_modified=last_modified,
                                   type=type,
-                                  inputartifactslimsid=inputartifactslimsid,
+                                  inputartifactlimsid=inputartifactlimsid,
                                   techfirstname=techfirstname,
                                   techlastname=techlastname,
                                   projectname=projectname,
