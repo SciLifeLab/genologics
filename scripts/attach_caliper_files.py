@@ -3,9 +3,6 @@
 
 Command to trigger this script:
 bash -c "PATH/TO/INSTALLED/SCRIPT
---username {username} 
---password {password} 
---baseuri YOUR.URI 
 --pluid {processLuid} 
 --path PATH_TO_CURRENT_IMAGE_STORAGE
 --log {compoundOutputFileLuidN}"
@@ -16,6 +13,7 @@ Johannes Alneberg, Science for Life Laboratory, Stockholm, Sweden.
 
 from genologics.lims import Lims
 from genologics.entities import Artifact, Process,Container, Sample
+from genologics.config import BASEURI,USERNAME,PASSWORD
 
 from argparse import ArgumentParser
 import os
@@ -66,12 +64,6 @@ def main(lims,pluid,path):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('--username',
-                        help='The user name')
-    parser.add_argument('--password',
-                        help='Password')
-    parser.add_argument('--baseuri',
-                        help='Uri for the lims server')
     parser.add_argument('--pluid',
                         help='Process Lims Id')
     parser.add_argument('--path',
@@ -83,7 +75,7 @@ if __name__ == "__main__":
     if args.log:
         configure_logging(args.log)
 
-    lims = Lims(args.baseuri,args.username,args.password)
+    lims = Lims(BASEURI,USERNAME,PASSWORD)
     lims.check_version()
 
     main(lims,args.pluid,args.path)

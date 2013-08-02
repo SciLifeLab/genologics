@@ -3,9 +3,6 @@
 
 Usage example: Trigger from Clarity with command
 bash -c "PATH/TO/INSTALLED/SCRIPT
---username {username} 
---password {password} 
---baseuri YOUR.URI 
 --log {compoundOutputFileLuidN}
 --pid {processLuid} 
 --file PATH_TO_FILE_TO_UPLOAD
@@ -18,7 +15,7 @@ Johannes Alneberg, Science for Life Laboratory, Stockholm, Sweden.
 from argparse import ArgumentParser
 from genologics.lims import Lims
 from genologics.entities import Process
-
+from genologics.config import BASEURI,USERNAME,PASSWORD
 from genologics.epp import configure_logging, attach_file
 
 def main(lims,pid,file):
@@ -49,9 +46,6 @@ def main(lims,pid,file):
 if __name__ == "__main__":
     parser = ArgumentParser()
     # Arguments that are useful in all EPP scripts
-    parser.add_argument("--baseuri", help="Base uri for your lims server")
-    parser.add_argument("--username", help="User name")
-    parser.add_argument("--password", help="User password")
     parser.add_argument("--log",help="Log file")
 
     # Arguments specific for this scripts task
@@ -64,7 +58,7 @@ if __name__ == "__main__":
     if args.log:
         configure_logging(args.log)
     
-    lims = Lims(args.baseuri,args.username,args.password)
+    lims = Lims(BASEURI,USERNAME,PASSWORD)
     lims.check_version()
 
     main(lims,args.pid,args.file)
