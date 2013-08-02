@@ -285,7 +285,7 @@ class UdfDictionary(object):
                                           type=type,
                                           name=key)
             if not isinstance(value, unicode):
-                value = unicode(value, 'UTF-8')
+                value = unicode(str(value), 'UTF-8')
             elem.text = value
 
     def __delitem__(self, key):
