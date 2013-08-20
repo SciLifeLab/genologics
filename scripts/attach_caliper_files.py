@@ -18,8 +18,9 @@ from genologics.config import BASEURI,USERNAME,PASSWORD
 from argparse import ArgumentParser
 import os
 import re
+import sys
 
-from genologics.epp import attach_file,configure_logging, unique_check
+from genologics.epp import attach_file,EppLogger, unique_check
     
 def main(lims,pluid,path):
     """Uploads images found in path, for each input artifact for a process
@@ -64,18 +65,16 @@ def main(lims,pluid,path):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('--pluid',
+    parser.add_argument('--pid',
                         help='Process Lims Id')
     parser.add_argument('--path',
                         help='Path where image files are located')
-    parser.add_argument('-l','--log',default=None,
+    parser.add_argument('-l','--log',default=sys.stdout,
                         help='Log file')
     args = parser.parse_args()
  
-    if args.log:
-        configure_logging(args.log)
+    with EppLogger(args.log):
+        lims = Lims(BASEURI,USERNAME,PASSWORD)
+        lims.check_version()
+        main(lims,args.pid,args.path)
 
-    lims = Lims(BASEURI,USERNAME,PASSWORD)
-    lims.check_version()
-
-    main(lims,args.pluid,args.path)

@@ -14,7 +14,9 @@ from genologics.lims import Lims
 from genologics.config import BASEURI,USERNAME,PASSWORD
 
 from genologics.entities import Process
-from genologics.epp import configure_logging
+from genologics.epp import EppLogger
+
+import sys
 
 def apply_calculations(lims,artifacts,udf1,op,udf2,result_udf):
     print ("result_udf: {0}, udf1: {1}, "
@@ -54,15 +56,12 @@ and volume udf:s in Clarity LIMS. """
     parser = ArgumentParser(description=desc)
     parser.add_argument('--pid',
                         help='Lims id for current Process')
-    parser.add_argument('--log',
+    parser.add_argument('--log',default=sys.stdout,
                         help='Log file')
     args = parser.parse_args()
 
-    # Start logging
-    if args.log:
-        configure_logging(args.log)
-    lims = Lims(BASEURI,USERNAME,PASSWORD)
-    lims.check_version()
-
-    main(lims, args)
+    with EppLogger(args.log):
+        lims = Lims(BASEURI,USERNAME,PASSWORD)
+        lims.check_version()
+        main(lims, args)
 
