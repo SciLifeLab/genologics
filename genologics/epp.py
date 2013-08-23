@@ -1,3 +1,11 @@
+"""Contains useful and reusable code for EPP scripts.
+
+Classes, methods and exceptions.
+
+Johannes Alneberg, Science for Life Laboratory, Stockholm, Sweden.
+Copyright (C) 2013 Johannes Alneberg
+"""
+
 import logging
 import sys
 import os
@@ -12,22 +20,30 @@ def attach_file(src,resource):
     new_name = resource.id + '_' + original_name
     dir = os.getcwd()
     location = os.path.join(dir,new_name)
-    print "Moving {0} to {1}".format(src,location)
     copy(src,location)
+    return location
+
+class EmptyError(ValueError):
+    "Raised if an iterator is unexpectedly empty."
+    pass
+
+class NotUniqueError(ValueError):
+    "Raised if there are unexpectedly more than 1 item in an iterator"
+    pass
 
 def unique_check(l,msg):
     "Check that l is of length 1, otherwise raise error, with msg appended"
     if len(l)==0:
-        raise Exception("No item found for {0}".format(msg))
+        raise EmptyError("No item found for {0}".format(msg))
     elif len(l)!=1:
-        raise Exception("Multiple items found for {0}".format(msg))
+        raise NotUniqueError("Multiple items found for {0}".format(msg))
 
     
 class EppLogger(object):
     """Logger class that collect stdout, stderr and info."""
 
     def __enter__(self):
-        return self
+        return self.logger
 
     def __exit__(self,exc_type,exc_val,exc_tb):
         # If no exception has occured in block, turn off logging.
@@ -57,6 +73,8 @@ class EppLogger(object):
         self.sle = self.StreamToLogger(stderr_logger, logging.ERROR)
         self.saved_stderr = sys.stderr
         sys.stderr = self.sle
+
+        self.logger = logging.getLogger()
 
     class StreamToLogger(object):
         """Fake file-like stream object that redirects writes to a logger instance.

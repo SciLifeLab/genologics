@@ -18,34 +18,35 @@ from genologics.epp import EppLogger
 
 import sys
 
-def apply_calculations(lims,artifacts,udf1,op,udf2,result_udf):
-    print ("result_udf: {0}, udf1: {1}, "
-           "operator: {2}, udf2: {3}").format(result_udf,udf1,op,udf2)
+def apply_calculations(lims,artifacts,udf1,op,udf2,result_udf,logger):
+    logger.info(("result_udf: {0}, udf1: {1}, "
+           "operator: {2}, udf2: {3}").format(result_udf,udf1,op,udf2))
     for artifact in artifacts:
         try:
             artifact.udf[result_udf]
         except KeyError:
             artifact.udf[result_udf]=0
 
-        print ("Updating: Artifact id: {0}, "
-               "result_udf: {1}, udf1: {2}, "
-               "operator: {3}, udf2: {4}").format(artifact.id, 
-                                                  artifact.udf[result_udf],
-                                                  artifact.udf[udf1],op,
-                                                  artifact.udf[udf2])
+        logger.info(("Updating: Artifact id: {0}, "
+                     "result_udf: {1}, udf1: {2}, "
+                     "operator: {3}, udf2: {4}").format(artifact.id, 
+                                                        artifact.udf[result_udf],
+                                                        artifact.udf[udf1],op,
+                                                        artifact.udf[udf2]))
         artifact.udf[result_udf] = eval(
             '{0}{1}{2}'.format(artifact.udf[udf1],op,artifact.udf[udf2]))
         artifact.put()
-        print 'Updated {0} to {1}.'.format(result_udf,artifact.udf[result_udf])
+        logger.info('Updated {0} to {1}.'.format(result_udf,
+                                                 artifact.udf[result_udf]))
 
-def main(lims,args):
+def main(lims,args,logger):
     p = Process(lims,id = args.pid)
     inputs = p.all_inputs(unique=True)
     filtered_inputs = filter(lambda a: a.udf['Conc. Units']=='ng/ul',inputs)
-    print ("Filtered out {0} artifacts with other "
-           "Conc. Unit than 'ng/ul'").format(len(inputs)-len(filtered_inputs))
+    logger.info(("Filtered out {0} artifacts with other "
+           "Conc. Unit than 'ng/ul'").format(len(inputs)-len(filtered_inputs)))
     apply_calculations(lims,inputs,'Concentration','*',
-                       'Volume (ul)','Amount (ng)')
+                       'Volume (ul)','Amount (ng)',logger)
 
 
 if __name__ == "__main__":
@@ -60,8 +61,8 @@ and volume udf:s in Clarity LIMS. """
                         help='Log file')
     args = parser.parse_args()
 
-    with EppLogger(args.log):
+    with EppLogger(args.log) as logger:
         lims = Lims(BASEURI,USERNAME,PASSWORD)
         lims.check_version()
-        main(lims, args)
+        main(lims, args,logger)
 
