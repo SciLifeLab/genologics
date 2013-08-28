@@ -90,8 +90,7 @@ if __name__ == "__main__":
                         help='Log file')
     args = parser.parse_args()
 
-    with EppLogger(args.log) as logger:
-        lims = Lims(BASEURI,USERNAME,PASSWORD)
-        lims.check_version()
-        main(lims,args.pid,args.path,logger)
-
+    lims = Lims(BASEURI,USERNAME,PASSWORD)
+    lims.check_version()
+    with EppLogger(args.log,lims=lims,prepend=True) as epp_logger:
+        main(lims,args.pid,args.path,epp_logger.logger)
