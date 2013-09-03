@@ -3,10 +3,7 @@
 
 Command to trigger this script:
 bash -c "PATH/TO/INSTALLED/SCRIPT
---username {username} 
---password {password} 
---baseuri YOUR.URI 
---pluid {processLuid} 
+--pid {processLuid} 
 --path PATH_TO_CURRENT_IMAGE_STORAGE
 --log {compoundOutputFileLuidN}"
 
@@ -16,22 +13,25 @@ Johannes Alneberg, Science for Life Laboratory, Stockholm, Sweden.
 
 from genologics.lims import Lims
 from genologics.entities import Artifact, Process,Container, Sample
+from genologics.config import BASEURI,USERNAME,PASSWORD
 
 from argparse import ArgumentParser
 import os
 import re
+import sys
 
-from genologics.epp import attach_file,configure_logging, unique_check
+from genologics.epp import attach_file,EppLogger, unique_check, EmptyError
     
-def main(lims,pluid,path):
+def main(lims,pluid,path,logger):
     """Uploads images found in path, for each input artifact for a process
 
     lims: The lims instance
     pluid: Process Lims id
     path: The path to the directory where images are stored
+    logger: Logging instance to handle log entries
 
     """
-    p = Process(lims,id=args.pluid)
+    p = Process(lims,id=args.pid)
     
     file_list = os.listdir(args.path)
     
@@ -44,46 +44,53 @@ def main(lims,pluid,path):
         o_a = Artifact(lims,id=output['limsid'])
         unique_check(i_a.samples,
                      "samples connected to artifact {0}".format(i_a.id))
-        i_s,i_c=i_a.samples[0],i_a.location[0]
+        # Input Well, Input Sample, Input Container
+        i_w,i_s,i_c=i_a.location[1],i_a.samples[0],i_a.location[0]
+
+        # Well is typed without colon in filename:
+        i_w = ''.join(i_w.split(':'))
         
+        info = {'well':i_w,
+                'container_id':i_c.id,
+                'input_artifact_name':i_a.name,
+                'input_artifact_id':i_a.id}
         # Use a reguluar expression to find the file name given
         # the container and sample
-        re_str = '.+{sample}.+{container}.+\.(png|pdf|PNG)'\
-                                   .format(sample=i_s.name,container=i_c.id)
+        re_str = '.*{well}_.*{input_artifact_name}_.*{container_id}_.*{input_artifact_id}'\
+                                   .format(**info)
+        
         im_file_r = re.compile(re_str)
         fns = filter(im_file_r.match,file_list)
-        print "Looking for files with container id {0} and sample name {1}"\
-            .format(i_c.id,i_s.name)
-        unique_check(fns,"files connected to container {0} and sample {1}"\
-                         .format(i_c.id,i_s.name))
-        fn = fns[0]
-        print "Found image file {0}".format(fn)
-        fp = os.path.join(args.path,fn)
+        logger.info(("Looking for file: well {well}, "
+               "container id: {container_id}, "
+               "Analyte/Sample name: {input_artifact_name}, "
+               "Artifact id: {input_artifact_id}").format(**info))
+        try:
+            unique_check(fns,"input artifact.")
+            fn = fns[0]
+            logger.info("Found image file {0}".format(fn))
+            fp = os.path.join(args.path,fn)
 
-        # Attach file to the LIMS
-        attach_file(fp,o_a)
-    
+            # Attach file to the LIMS
+            location = attach_file(fp,o_a)
+            logger.debug("Moving {0} to {1}".format(fp,location))
+        except EmptyError as e:
+            logger.warning(e)
+            logger.warning("Skipping.")
+
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('--username',
-                        help='The user name')
-    parser.add_argument('--password',
-                        help='Password')
-    parser.add_argument('--baseuri',
-                        help='Uri for the lims server')
-    parser.add_argument('--pluid',
+    parser.add_argument('--pid',
                         help='Process Lims Id')
     parser.add_argument('--path',
                         help='Path where image files are located')
-    parser.add_argument('-l','--log',default=None,
+    parser.add_argument('-l','--log',default=sys.stdout,
                         help='Log file')
     args = parser.parse_args()
- 
-    if args.log:
-        configure_logging(args.log)
 
-    lims = Lims(args.baseuri,args.username,args.password)
+    lims = Lims(BASEURI,USERNAME,PASSWORD)
     lims.check_version()
-
-    main(lims,args.pluid,args.path)
+    with EppLogger(args.log,lims=lims,prepend=True) as epp_logger:
+        main(lims,args.pid,args.path,epp_logger.logger)

@@ -3,9 +3,6 @@
 
 Usage example: Trigger from Clarity with command
 bash -c "PATH/TO/INSTALLED/SCRIPT
---username {username} 
---password {password} 
---baseuri YOUR.URI 
 --log {compoundOutputFileLuidN}
 --pid {processLuid} 
 --file PATH_TO_FILE_TO_UPLOAD
@@ -18,8 +15,9 @@ Johannes Alneberg, Science for Life Laboratory, Stockholm, Sweden.
 from argparse import ArgumentParser
 from genologics.lims import Lims
 from genologics.entities import Process
-
-from genologics.epp import configure_logging, attach_file
+from genologics.config import BASEURI,USERNAME,PASSWORD
+from genologics.epp import EppLogger, attach_file
+import sys
 
 def main(lims,pid,file):
     """Uploads a given file to the first output artifact of the process
@@ -49,10 +47,8 @@ def main(lims,pid,file):
 if __name__ == "__main__":
     parser = ArgumentParser()
     # Arguments that are useful in all EPP scripts
-    parser.add_argument("--baseuri", help="Base uri for your lims server")
-    parser.add_argument("--username", help="User name")
-    parser.add_argument("--password", help="User password")
-    parser.add_argument("--log",help="Log file")
+    parser.add_argument("--log",default=sys.stdout,
+                        help="Log file")
 
     # Arguments specific for this scripts task
     parser.add_argument("--pid", help="Process id")
@@ -60,11 +56,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Start the logging of all stdout and stderr printing
-    if args.log:
-        configure_logging(args.log)
-    
-    lims = Lims(args.baseuri,args.username,args.password)
-    lims.check_version()
+    # Log everything to log argument
+    with EppLogger(args.log):
+        lims = Lims(BASEURI,USERNAME,PASSWORD)
+        lims.check_version()
 
-    main(lims,args.pid,args.file)
+        main(lims,args.pid,args.file)

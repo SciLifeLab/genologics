@@ -34,7 +34,7 @@ pip install https://github.com/SciLifeLab/genologics/tarball/master
 
 ### Usage
 
-The URL and credentials should be wrintten in a new file in any
+The URL and credentials should be written in a new file in any
 of those config files (ordered by preference):
 
 ```
@@ -52,6 +52,8 @@ or if installed system_wide:
 BASEURI=https://yourlims.example.com:8443
 USERNAME=your_username
 PASSWORD=your_password
+[logging]
+MAIN_LOG=/home/glsai/your_main_log_file
 ```
 
 ### Example scripts

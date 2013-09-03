@@ -220,6 +220,13 @@ class UdfDictionary(object):
                 value = datetime.date(*time.strptime(value, "%Y-%m-%d")[:3])
             self._lookup[elem.attrib['name']] = value
 
+    def __contains__(self,key):
+        try:
+            self._lookup[key]
+        except KeyError:
+            return False
+        return True
+
     def __getitem__(self, key):
         return self._lookup[key]
 
@@ -285,7 +292,7 @@ class UdfDictionary(object):
                                           type=type,
                                           name=key)
             if not isinstance(value, unicode):
-                value = unicode(value, 'UTF-8')
+                value = unicode(str(value), 'UTF-8')
             elem.text = value
 
     def __delitem__(self, key):
@@ -646,6 +653,19 @@ class Process(Entity):
     files          = EntityListDescriptor(nsmap('file:file'), File)
     # instrument XXX
     # process_parameters XXX
+    
+    def all_inputs(self,unique=False):
+        """Retrieving all input artifacts from input_output_maps
+        if unique is true, no duplicates are returned.
+        """
+        ids = map(lambda io: io[0]['limsid'],self.input_output_maps)
+        if unique:
+            ids = list(frozenset(ids))
+        return map(lambda id: Artifact(self.lims,id=id),ids)
+
+    def parent_processes(self):
+        """Retrieving all parent processes through the input artifacts"""
+        return map(lambda i_a: i_a.parent_process, self.all_inputs(unique=True))
 
 
 class Artifact(Entity):
