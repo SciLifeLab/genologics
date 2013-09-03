@@ -220,6 +220,13 @@ class UdfDictionary(object):
                 value = datetime.date(*time.strptime(value, "%Y-%m-%d")[:3])
             self._lookup[elem.attrib['name']] = value
 
+    def __contains__(self,key):
+        try:
+            self._lookup[key]
+        except KeyError:
+            return False
+        return True
+
     def __getitem__(self, key):
         return self._lookup[key]
 

@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 import subprocess
+import glob
 
 # Fetch version from git tags, and write to version.py.
 # Also, when git is not available (PyPi package), use stored version.py.
@@ -41,8 +42,7 @@ setup(name='genologics',
       url='https://github.com/scilifelab/genologics',
       license='GPLv3',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      scripts=["scripts/attach_caliper_files.py",
-               "scripts/qc_amount_calculation.py"],
+      scripts=glob.glob("scripts/*.py"),
       include_package_data=True,
       zip_safe=False,
       install_requires=[
