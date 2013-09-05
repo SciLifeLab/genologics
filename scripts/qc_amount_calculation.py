@@ -48,11 +48,11 @@ def check_udf(inputs,udf,value):
             filtered_inputs.append(input)
         elif udf in input.udf:
             incorrect_inputs.append(input)
-            logging.info(("Filtered out artifact with id: {0}"
-                          ", due to wrong {1}").format(input.id,udf))
+            logging.info(("Filtered out artifact for sample: {0}"
+                          ", due to wrong {1}").format(input.samples[0].name,udf))
         else:
-            msg = ("Found input artifact {0} with {1} "
-                   "undefined/blank, exiting").format(input.id,udf)
+            msg = ("Found artifact for sample {0} with {1} "
+                   "undefined/blank, exiting").format(input.samples[0].name,udf)
             print >> sys.stderr, msg
             sys.exit(-1)
 
@@ -62,15 +62,20 @@ def main(lims,args,epp_logger):
     p = Process(lims,id = args.pid)
     udf_check = 'Conc. Units'
     value_check = 'ng/ul'
-    inputs = p.all_inputs(unique=True)
-    correct_inputs, incorrect_inputs = check_udf(inputs,udf_check,value_check)
+    if args.aggregate:
+        artifacts = p.all_inputs(unique=True)
+    else:
+        all_artifacts = p.all_outputs(unique=True)
+        artifacts = filter(lambda a: a.output_type == "ResultFile" ,all_artifacts)
 
-    apply_calculations(lims,correct_inputs,'Concentration','*',
+    correct_artifacts, incorrect_artifacts = check_udf(artifacts,udf_check,value_check)
+
+    apply_calculations(lims,correct_artifacts,'Concentration','*',
                        'Volume (ul)','Amount (ng)',epp_logger)
 
     abstract = ("Updated {0} artifact(s), skipped {1} artifact(s) with "
-                "wrong 'Conc. Unit'.").format(len(correct_inputs),
-                                             len(incorrect_inputs))
+                "wrong 'Conc. Unit'.").format(len(correct_artifacts),
+                                             len(incorrect_artifacts))
     print >> sys.stderr, abstract # stderr will be logged and printed in GUI
 
 
@@ -86,6 +91,8 @@ and volume udf:s in Clarity LIMS. """
                         help='Log file')
     parser.add_argument('--no_prepend',action='store_true',
                         help="Do not prepend old log file")
+    parser.add_argument('--aggregate', action='store_true',
+                        help='Current Process is an aggregate QC step')
     args = parser.parse_args()
 
     lims = Lims(BASEURI,USERNAME,PASSWORD)
