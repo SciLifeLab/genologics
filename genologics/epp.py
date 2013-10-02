@@ -47,7 +47,19 @@ def unique_check(l,msg):
     
 class EppLogger(object):
 
-    """Logger class that collect stdout, stderr and info."""
+    """Context manager for logging module useful for EPP script execution.
+
+    This context manager (CM) automatically logs what script that is executed,
+    with what parameters it was executed and what version (including) commit
+    hash of the genologics package used. Since EPP scripts are often ran
+    automatically by the genologics LIMS client, the stdout and stderr is 
+    captured and logged within this CM. Stderr is duplicated so that the
+    last line can be shown in the GUI. In order to track multiple runs
+    of the same process from the genologics LIMS GUI, the previous log 
+    files can be prepended. Also a main log file can be used that is
+    supposed to be common for all scripts executed on the server.
+    
+    """
 
     PACKAGE = 'genologics'
     def __enter__(self):
@@ -81,7 +93,8 @@ class EppLogger(object):
         Keyword Arguments:
         level   -- Logging level, default logging.INFO
         lims    -- Lims instance, needed for prepend to work
-        prepend -- If True, prepend old log file to new, require lims"""
+        prepend -- If True, prepend old log file to new, requires lims
+        """
         self.lims = lims
         self.log_file = log_file
         self.level = level

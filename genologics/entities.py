@@ -654,7 +654,7 @@ class Process(Entity):
     # instrument XXX
     # process_parameters XXX
     
-    def all_inputs(self,unique=False):
+    def all_inputs(self,unique=True):
         """Retrieving all input artifacts from input_output_maps
         if unique is true, no duplicates are returned.
         """
@@ -676,6 +676,13 @@ class Process(Entity):
         """Retrieving all parent processes through the input artifacts"""
         return map(lambda i_a: i_a.parent_process, self.all_inputs(unique=True))
 
+    def output_containers(self):
+        """Retrieve all unique output containers"""
+        cs = []
+        for o_a in self.all_outputs(unique=True):
+            if o_a.container:
+                cs.append(o_a.container)
+        return list(frozenset(cs))
 
 class Artifact(Entity):
     "Any process input or output; analyte or file."
@@ -716,6 +723,14 @@ class Artifact(Entity):
         try:
             return params['state'][0]
         except (KeyError, IndexError):
+            return None
+
+    @property
+    def container(self):
+        "The container where the artifact is located, or None"
+        try:
+            return self.location[0]
+        except:
             return None
 
     # XXX set_state ?
