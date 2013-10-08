@@ -4,4 +4,10 @@ build/
 dist/
 genologics.egg-info/
 test_data/
-fabfile.py
+docs/_build/
+docs/_static/
+docs/_sources/
+docs/.doctrees/
+docs/_templates/
+docs/*.html
+.fabfilerc
