@@ -680,6 +680,16 @@ class Process(Entity):
             ids = list(frozenset(ids))
         return map(lambda id: Artifact(self.lims,id=id),ids)
 
+    def shared_result_files(self):
+        """Retreve all resultfiles of output-generation-type PerAllInputs."""
+        artifacts = self.all_outputs(unique=True)
+        return filter(lambda a: a.output_type == 'SharedResultFile', artifacts)
+
+    def result_files(self):
+        """Retreve all resultfiles of output-generation-type perInput."""
+        artifacts = self.all_outputs(unique=True)
+        return filter(lambda a: a.output_type == 'ResultFile', artifacts)
+
     def analytes(self):
         """Retreving the output Analytes of the process, if existing. 
         If the process is not producing any output analytes, the input 

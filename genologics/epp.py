@@ -46,6 +46,11 @@ def unique_check(l,msg):
     elif len(l)!=1:
         raise NotUniqueError("Multiple items found for {0}".format(msg))
 
+def set_field(element):    
+    try:
+        element.put()
+    except (TypeError, HTTPError) as e:
+        logging.warning("Error while updating element: {0}".format(e))
     
 class EppLogger(object):
 
@@ -191,6 +196,78 @@ class EppLogger(object):
                 self.stream.write(buf)
             for line in buf.rstrip().splitlines():
                 self.logger.log(self.log_level, line.rstrip())
+
+class ReadResultFiles():
+    """Class to read pars different kinds of result files from a process.
+    The class stores the parsed content of all shared result files in a 
+    dictionary 'shared_files'. The data is parsed as lists of lists. """
+
+    def __init__(self, process):
+        self.process = process
+        self.file = file
+        self.shared_files = self._pars_file('SharedResultFile')
+        self.perinput_files = self._pars_file('ResultFile')
+
+    def _pars_file(self, output_type):
+        """Reads a csv or txt into a list of lists, where sub lists are lines 
+        of the csv."""
+        outs = self.process.all_outputs()
+        files = filter(lambda a: a.output_type == output_type, outs)
+        parsed_files = {}
+        for f in files:
+            if len(f.files) > 0:
+                file_path = f.files[0].content_location.split('scilifelab.se')[1]
+                if len(file_path.split('.')) > 1:
+                    opened_file = open(file_path ,'r')
+                    file_ext = file_path.split('.')[-1]
+                    if file_ext == 'csv':
+                        parsed_files[f.name] = [row for row in csv.reader(opened_file.read().splitlines())]
+                    elif file_ext == 'txt':
+                        parsed_files[f.name] = [row.strip().strip('\\').split('\t') for row in opened_file.readlines()]
+                    opened_file.close()
+        return parsed_files
+
+    def format_file(self, parsed_file, first_header = None, header_row = None, root_key_col = 0):
+        """Function to formate a parsed csv or txt file.
+
+        Arguments and Output:
+            parsed_file     A list of lists where sublists are rows of the csv.
+            first_header    First column of the heather section in the file. 
+                            default value is 'None'
+            root_key_col
+            header_row
+            file_info      dict of dicts. Keys of root dict are the first 
+                            column in the csv starting from the line after the 
+                            heather line. Keys of sub dicts are the columns of 
+                            the heather line."""
+        file_info = {}
+        keys = []
+        dupl_rownames = []
+        warn = ''
+        for row, line in enumerate(parsed_file):
+            if keys and len(line)==len(keys):
+                root_key = line[root_key_col]
+                if file_info.has_key(root_key):
+                    dupl_rownames.append(root_key)
+                else:
+                    file_info[root_key] = {}
+                    for col in range(len(keys)):
+                        if keys[col] != '':
+                            file_info[root_key][keys[col]] = line[col]
+                        elif keys[col-1] != '':
+                            file_info[root_key][keys[col-1]] = (file_info[root_key][keys[col-1]], line[col])
+            if first_header and len(line)>root_key_col and line[root_key_col].strip() == first_header:
+                keys = line
+            elif header_row and row == header_row:
+                keys = line
+
+        if not file_info:
+            warn = 'Could not formate parsed file.'
+        if warn:
+            warn += 'Row names: {0}, occurs more than once in file!'.format(', '.join(dupl_rownames))
+        logging.info(warn)
+
+        return file_info, warn
 
 
 class CopyField(object):
