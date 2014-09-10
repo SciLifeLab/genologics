@@ -28,6 +28,8 @@ def apply_calculations(lims,artifacts,udf1,op,udf2,result_udf,epp_logger,process
             artifact.udf[result_udf]=0
 
         try:
+            print process.input_per_sample(artifact.sample)
+            print process.input_per_sample(artifact.sample)[0].udf['Dilution Fold']
             dil_fold = process.input_per_sample(artifact.sample)[0].udf['Dilution Fold']
         except:
             dil_fold = None
