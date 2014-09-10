@@ -19,6 +19,15 @@ import logging
 import sys
 
 def apply_calculations(lims,artifacts,udf1,op,udf2,result_udf,epp_logger,process):
+    """For each result file of the process: if its corresponding inart has the udf 
+    'Dilution Fold', the result_udf: 'Amount (ng)' is calculated as
+   
+    'Amount (ng)' =  'Concentration'*'Volume (ul)'*'Dilution Fold'
+    
+    otherwise its calculated as
+        
+    'Amount (ng)' =  'Concentration'*'Volume (ul)'"""
+
     logging.info(("result_udf: {0}, udf1: {1}, "
                   "operator: {2}, udf2: {3}").format(result_udf,udf1,op,udf2))
     for artifact in artifacts:
