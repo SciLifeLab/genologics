@@ -32,7 +32,7 @@ def apply_calculations(lims,artifacts,udf1,op,udf2,result_udf,epp_logger,process
             print '**************'
             print artifact
             print artifact.samples
-            print process.input_per_sample(artifact.samples[0])
+            print process.input_per_sample(artifact.samples[0].name)
          #   print process.input_per_sample(artifact.samples[0])[0].udf['Dilution Fold']
          #   dil_fold = process.input_per_sample(artifact.samples)[0].udf['Dilution Fold']
         #except:
