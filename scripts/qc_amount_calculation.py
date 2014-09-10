@@ -36,8 +36,8 @@ def apply_calculations(lims,artifacts,udf1,op,udf2,result_udf,epp_logger,process
          #   print process.input_per_sample(artifact.samples[0])[0].udf['Dilution Fold']
          #   dil_fold = process.input_per_sample(artifact.samples)[0].udf['Dilution Fold']
         #except:
-        #    dil_fold = None
-
+            #dil_fold = None
+        dil_fold = 1
         logging.info(("Updating: Artifact id: {0}, "
                      "result_udf: {1}, udf1: {2}, "
                      "operator: {3}, udf2: {4}").format(artifact.id, 
