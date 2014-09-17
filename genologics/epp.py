@@ -211,7 +211,7 @@ class ReadResultFiles():
 
     def get_file_path(self, artifact):
         if len(artifact.files) > 0:
-            file = outart.files[0]
+            file = artifact.files[0]
             file_path = file.content_location.split('scilifelab.se')[1]
             if len(file_path.split('.')) > 1:
                 return file_path
