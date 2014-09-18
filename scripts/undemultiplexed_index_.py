@@ -46,7 +46,7 @@ class UndemuxInd():
         self.missing_samps = []
         self.nr_samps_updat = 0
 
-    def get_demultiplex_files(self, path):
+    def get_demultiplex_files(self):
         """"""
         fh = ReadResultFiles(self.process)
         FRMP = FlowcellRunMetricsParser()
