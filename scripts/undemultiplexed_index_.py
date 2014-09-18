@@ -84,14 +84,19 @@ class UndemuxInd():
     def set_result_file_udfs(self):
         """populates udfs: '% Perfect Index Reads' and 'Index QC'"""
         for samp_name, target_file in self.target_files.items():
+            print 'LLLLLLLLLLLL'
+            print target_file
             if samp_name in self.barcode_lane_statistics.keys():
                 s_inf = self.barcode_lane_statistics[samp_name]
                 target_file.udf['% Perfect Index Reads'] = s_inf['% Perfect Index Reads']
                 target_file.udf['Index QC'] = self._index_QC(s_inf)
+                print target_file.udf['Index QC']
+                print target_file.udf['% Perfect Index Reads']
+                print '***********'
+                set_field(target_file)
                 self.nr_samps_updat += 1
             else:
                 self.missing_samps.append(samp_name)
-            set_field(target_file)
 
 
     def _check_unexpected_yield(self):
