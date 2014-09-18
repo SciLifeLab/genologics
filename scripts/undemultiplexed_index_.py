@@ -88,7 +88,7 @@ class UndemuxInd():
             print target_file
             if samp_name in self.barcode_lane_statistics.keys():
                 s_inf = self.barcode_lane_statistics[samp_name]
-                target_file.udf['% Perfect Index Read'] = float(s_inf['% Perfect Index Reads'])
+                #target_file.udf['% Perfect Index Read'] = float(s_inf['% Perfect Index Read'])
                 target_file.udf['Index QC'] = self._index_QC(s_inf)
                 print target_file.udf['Index QC']
                 print target_file.udf['% Perfect Index Reads']
