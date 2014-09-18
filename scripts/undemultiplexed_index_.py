@@ -88,7 +88,7 @@ class UndemuxInd():
             print target_file
             if samp_name in self.barcode_lane_statistics.keys():
                 s_inf = self.barcode_lane_statistics[samp_name]
-                target_file.udf['% Perfect Index Reads'] = s_inf['% Perfect Index Reads']
+                target_file.udf['% Perfect Index Read'] = s_inf['% Perfect Index Reads']
                 target_file.udf['Index QC'] = self._index_QC(s_inf)
                 print target_file.udf['Index QC']
                 print target_file.udf['% Perfect Index Reads']
@@ -120,7 +120,7 @@ class UndemuxInd():
         for l, w in warn.items():
             if w:
                 inds = ', '.join(w)
-                warning = warning + ''.join([inds,' on Lane ', l, '. '])
+                warning = warning + ''.join([inds,' on Lane ', l, ', '])
         if warning:
             self.abstract.append("WARNING for high yield of unexpected index:"
                                                          " {0}".format(warning))
