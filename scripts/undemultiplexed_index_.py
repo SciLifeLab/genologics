@@ -55,7 +55,7 @@ class UndemuxInd():
         htm_file_path = fh.get_file_path(demultiplex_stats)
         self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(htm_file_path)
         met_file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
-                          "/Undemultiplexed_stats.metrics".format(FRM.flowcell))
+                          "/Undemultiplexed_stats.metrics".format(FRMP.flowcell))
         met_file_path = glob.glob(met_file_path)[0]
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                                                   met_file_path)
