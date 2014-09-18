@@ -84,7 +84,6 @@ class UndemuxInd():
     def set_result_file_udfs(self):
         """populates udfs: '% Perfect Index Reads' and 'Index QC'"""
         for samp_name, target_file in self.target_files.items():
-            print self.barcode_lane_statistics
             if samp_name in self.barcode_lane_statistics.keys():
                 s_inf = self.barcode_lane_statistics[samp_name]
                 target_file.udf['% Perfect Index Reads'] = s_inf['% Perfect Index Reads']
@@ -99,15 +98,13 @@ class UndemuxInd():
         """Warning if an unexpected index has yield > 0.5M"""
         warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
         warning = ''
-        print self.undemultiplexed_stats
         for lane, lane_inf in self.undemultiplexed_stats.items():
-            print lane_inf
             counts = lane_inf['undemultiplexed_barcodes']['count']
             sequence = lane_inf['undemultiplexed_barcodes']['sequence']
             index_name = lane_inf['undemultiplexed_barcodes']['index_name']
             lane = lane_inf['undemultiplexed_barcodes']['lane']
             for i, c in enumerate(counts):
-                if int(c) > 500000:
+                if int(c) > 200000:#500000:
                     ##  Format warning message
                     if index_name[i]:
                         s = ' '.join([sequence[i],'(',index_name[i],')'])
