@@ -91,7 +91,6 @@ class UndemuxInd():
                 #target_file.udf['% Perfect Index Read'] = float(s_inf['% Perfect Index Read'])
                 target_file.udf['Index QC'] = self._index_QC(s_inf)
                 print target_file.udf['Index QC']
-                print target_file.udf['% Perfect Index Reads']
                 print '***********'
                 set_field(target_file)
                 self.nr_samps_updat += 1
