@@ -99,7 +99,9 @@ class UndemuxInd():
         """Warning if an unexpected index has yield > 0.5M"""
         warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
         warning = ''
+        print self.undemultiplexed_stats
         for lane_inf in self.undemultiplexed_stats:
+            print lane_inf
             counts = lane_inf['undemultiplexed_barcodes']['count']
             sequence = lane_inf['undemultiplexed_barcodes']['sequence']
             index_name = lane_inf['undemultiplexed_barcodes']['index_name']
