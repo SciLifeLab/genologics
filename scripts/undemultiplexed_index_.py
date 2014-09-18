@@ -115,7 +115,7 @@ class UndemuxInd():
         for l, w in warn.items():
             if w:
                 inds = ', '.join(w)
-                warning = warning + ' '.join([inds,'on Lane', l, '. '])
+                warning = warning + ''.join([inds,' on Lane ', l, '. '])
         if warning:
             self.abstract.append("WARNING for high yield of unexpected index:"
                                                          " {0}".format(warning))
