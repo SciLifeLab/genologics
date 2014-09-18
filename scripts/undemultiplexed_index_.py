@@ -77,9 +77,9 @@ class UndemuxInd():
         QC3 = nr_reads >= 100000
 
         if QC1 and QC2 and QC3:
-            return 'PASS'
+            return 'Pass'
         else:
-            return 'WARN'
+            return 'Warning'
 
     def set_result_file_udfs(self):
         """populates udfs: '% Perfect Index Reads' and 'Index QC'"""
