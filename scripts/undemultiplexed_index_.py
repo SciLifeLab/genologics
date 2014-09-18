@@ -98,14 +98,15 @@ class UndemuxInd():
         """Warning if an unexpected index has yield > 0.5M"""
         warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
         warning = ''
-        for lane, lane_inf in self.undemultiplexed_stats.items():
+        for l, lane_inf in self.undemultiplexed_stats.items():
             counts = lane_inf['undemultiplexed_barcodes']['count']
             sequence = lane_inf['undemultiplexed_barcodes']['sequence']
             index_name = lane_inf['undemultiplexed_barcodes']['index_name']
-            lane = lane_inf['undemultiplexed_barcodes']['lane']
+            lanes = lane_inf['undemultiplexed_barcodes']['lane']
             for i, c in enumerate(counts):
                 if int(c) > 200000:#500000:
                     ##  Format warning message
+                    lane = lanes[i]
                     if index_name[i]:
                         s = ' '.join([sequence[i],'(',index_name[i],')'])
                         warn[lane].append(s)
