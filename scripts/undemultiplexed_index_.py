@@ -46,7 +46,7 @@ class UndemuxInd():
         self.missing_samps = []
         self.nr_samps_updat = 0
 
-    def _get_demultiplex_files(self, path):
+    def get_demultiplex_files(self, path):
         """"""
         fh = ReadResultFiles(self.process)
         FRMP = FlowcellRunMetricsParser()
@@ -84,6 +84,7 @@ class UndemuxInd():
     def set_result_file_udfs(self):
         """populates udfs: '% Perfect Index Reads' and 'Index QC'"""
         for samp_name, target_file in self.target_files.items():
+            print self.barcode_lane_statistics
             if samp_name in self.barcode_lane_statistics.keys():
                 s_inf = self.barcode_lane_statistics[samp_name]
                 target_file.udf['% Perfect Index Reads'] = s_inf['% Perfect Index Reads']
@@ -120,7 +121,6 @@ class UndemuxInd():
                                                          " {0}".format(warning))
                 
 
-
     def _make_demultiplexed_counts_file(self):
         """"""
 
@@ -138,6 +138,7 @@ class UndemuxInd():
 def main(lims, pid, epp_logger):
     process = Process(lims,id = pid)
     UDI = UndemuxInd(process)
+    UDI.get_demultiplex_files()
     UDI.set_result_file_udfs()
     UDI.make_demultiplexed_counts_file()
     UDI.logging()
