@@ -209,6 +209,14 @@ class ReadResultFiles():
         self.shared_files = self._pars_file('SharedResultFile')
         self.perinput_files = self._pars_file('ResultFile')
 
+    def get_file_path(self, artifact):
+        if len(artifact.files) > 0:
+            file = artifact.files[0]
+            file_path = file.content_location.split('scilifelab.se')[1]
+            if len(file_path.split('.')) > 1:
+                return file_path
+        return None
+
     def _pars_file(self, output_type):
         """Reads a csv or txt into a list of lists, where sub lists are lines 
         of the csv."""
@@ -216,19 +224,17 @@ class ReadResultFiles():
         outarts = filter(lambda a: a.output_type == output_type, outs)
         parsed_files = {}
         for outart in outarts:
-            if len(outart.files) > 0:
-                file = outart.files[0]
-                file_path = file.content_location.split('scilifelab.se')[1]
-                if len(file_path.split('.')) > 1:
-                    of = open(file_path ,'r')
-                    file_ext = file_path.split('.')[-1]
-                    if file_ext == 'csv':
-                        pf = [row for row in csv.reader(of.read().splitlines())]
-                        parsed_files[outart.name] = pf
-                    elif file_ext == 'txt':
-                        pf = [row.strip().strip('\\').split('\t') for row in of.readlines()]
-                        parsed_files[outart.name] = pf
-                    of.close()
+            file_path = self.get_file_path(outart)
+            if file_path:
+                of = open(file_path ,'r')
+                file_ext = file_path.split('.')[-1]
+                if file_ext == 'csv':
+                    pf = [row for row in csv.reader(of.read().splitlines())]
+                    parsed_files[outart.name] = pf
+                elif file_ext == 'txt':
+                    pf = [row.strip().strip('\\').split('\t') for row in of.readlines()]
+                    parsed_files[outart.name] = pf
+                of.close()
         return parsed_files
 
     def format_file(self, parsed_file, name = '', first_header = None, 
