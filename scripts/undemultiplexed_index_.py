@@ -121,7 +121,7 @@ class UndemuxInd():
                                                          " {0}".format(warning))
                 
 
-    def _make_demultiplexed_counts_file(self):
+    def make_demultiplexed_counts_file(self):
         """"""
 
     def logging(self):
@@ -140,7 +140,7 @@ def main(lims, pid, epp_logger):
     UDI = UndemuxInd(process)
     UDI.get_demultiplex_files()
     UDI.set_result_file_udfs()
-    UDI.make_demultiplexed_counts_file()
+    #UDI.make_demultiplexed_counts_file()
     UDI.logging()
     
 
