@@ -54,7 +54,7 @@ class UndemuxInd():
         file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
                                                    "/".format(self.flowcell_id))
         file_path = glob.glob(file_path)[0]
-        demux_file = file_path + 'Demultiplex Stats'
+        demux_file = file_path + 'Demultiplex_Stats.htm'
         undemux_file = file_path + 'Undemultiplexed_stats.metrics'
         self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(demux_file)
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
