@@ -35,6 +35,7 @@ from qc_parsers import FlowcellRunMetricsParser
 class UndemuxInd():
     def __init__(self, process):
         self.process = process
+        self.flowcell_id = process.all_inputs()[0].container.name
         self.target_files = dict((r.samples[0].name, r) for r in process.result_files())
         self.nr_samps_tot = str(len(self.target_files))
         self.demultiplex_stats = None
@@ -50,16 +51,24 @@ class UndemuxInd():
         """"""
         fh = ReadResultFiles(self.process)
         FRMP = FlowcellRunMetricsParser()
-        demultiplex_stats = filter(lambda f: f.name == 'Demultiplex Stats'
-                                         ,self.process.shared_result_files())[0]
-        htm_file_path = fh.get_file_path(demultiplex_stats)
-        self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(htm_file_path)
-        met_file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
-                          "/Undemultiplexed_stats.metrics".format(FRMP.flowcell))
-        met_file_path = glob.glob(met_file_path)[0]
+        file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
+                                                   "/".format(self.flowcell_id))
+        file_path = glob.glob(file_path)[0]
+        demux_file = file_path + 'Demultiplex Stats'
+        undemux_file = file_path + 'Undemultiplexed_stats.metrics'
+        self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(demux_file)
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
+                                                                  undemux_file)
+        #demultiplex_stats = filter(lambda f: f.name == 'Demultiplex Stats'
+        #                                 ,self.process.shared_result_files())[0]
+        #htm_file_path = fh.get_file_path(demultiplex_stats)
+        #self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(htm_file_path)
+        #met_file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
+        #              "/Undemultiplexed_stats.metrics".format(self.flowcell_id))
+        #met_file_path = glob.glob(met_file_path)[0]
+        #self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                                                   met_file_path)
-        print self.demultiplex_stats
+        #print self.demultiplex_stats
         self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
                              self.demultiplex_stats['Barcode_lane_statistics']))
     
@@ -131,9 +140,8 @@ class UndemuxInd():
 
     def logging(self):
         self._check_unexpected_yield()
-        self.abstract.append("Index QC and % Perfect Index Reads uploaded for "
-                           "{0} out of {1} samples.".format(self.nr_samps_updat,
-                                                             self.nr_samps_tot))
+        self.abstract.append("Index QC uploaded for {0} out of {1} samples.".format(
+                                        self.nr_samps_updat, self.nr_samps_tot))
         if self.missing_samps:
             self.abstract.append("The following samples are missing in "
                                           "Demultiplex Stats file: {0}.".format(
