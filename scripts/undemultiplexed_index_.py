@@ -59,6 +59,7 @@ class UndemuxInd():
         met_file_path = glob.glob(met_file_path)[0]
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                                                   met_file_path)
+        print self.demultiplex_stats
         self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
                              self.demultiplex_stats['Barcode_lane_statistics']))
     
