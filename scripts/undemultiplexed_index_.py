@@ -67,7 +67,7 @@ class UndemuxInd():
         #              "/Undemultiplexed_stats.metrics".format(self.flowcell_id))
         #met_file_path = glob.glob(met_file_path)[0]
         #self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
-                                                                  met_file_path)
+        #                                                          met_file_path)
         #print self.demultiplex_stats
         self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
                              self.demultiplex_stats['Barcode_lane_statistics']))
@@ -82,9 +82,9 @@ class UndemuxInd():
         Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
         nr_reads = int(sample_info['# Reads'].replace(',',''))
 
-        QC1 = perf_ind_read >= 100 #60
-        QC2 = Q30 >= 100 #80
-        QC3 = nr_reads >= 100000 #100000
+        QC1 = perf_ind_read >= 60
+        QC2 = Q30 >= 80
+        QC3 = nr_reads >= 100000
 
         if QC1 and QC2 and QC3:
             return 'Pass'
