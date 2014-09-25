@@ -142,7 +142,7 @@ class UndemuxInd():
                 row_dict['Lane'] = undet_per_lane['lane'][row]
                 toCSV.append(row_dict)    
         f = open(demuxfile, 'wb')
-        dict_writer = csv.DictWriter(f, keys, dialect='excel'))# delimiter='\t')
+        dict_writer = csv.DictWriter(f, keys, dialect='excel')# delimiter='\t')
         dict_writer.writer.writerow(keys)
         dict_writer.writerows(toCSV)
         f.close
