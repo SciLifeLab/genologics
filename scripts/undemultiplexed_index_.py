@@ -122,6 +122,7 @@ class UndemuxInd():
                 
 
     def make_demultiplexed_counts_file(self, demuxfile):
+        demuxfile = demuxfile + '.html'
         keys = ['Project', 'Sample ID', 'Lane', '# Reads', 'Index', 
                                     'Index name', '% of >= Q30 Bases (PF)']
         toCSV = []
@@ -172,7 +173,7 @@ if __name__ == "__main__":
     parser.add_argument('--log', dest = 'log',
                         help=('File name for standard log file, '
                               'for runtime information and problems.'))
-    parser.add_argument('--file', dest = 'file', default = 'demux.html',
+    parser.add_argument('--file', dest = 'file', default = 'demux',
                         help=('File path to demultiplexed metrics file.'))
     args = parser.parse_args()
     lims = Lims(BASEURI, USERNAME, PASSWORD)
