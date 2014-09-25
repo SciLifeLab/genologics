@@ -117,7 +117,7 @@ class UndemuxInd():
                 inds = ', '.join(w)
                 warning = warning + ''.join([inds,' on Lane ', l, ', '])
         if warning:
-            self.abstract.append("WARNING for high yield of unexpected index:"
+            self.abstract.append("WARNING: High yield of unexpected index:"
                                                          " {0}".format(warning))
                 
 
@@ -149,8 +149,10 @@ class UndemuxInd():
 
     def logging(self):
         self._check_unexpected_yield()
-        self.abstract.append("Index QC uploaded for {0} out of {1} samples.".format(
-                                        self.nr_samps_updat, self.nr_samps_tot))
+        self.abstract.append("Index QC tressholds: '% Perfect Index Reads' < "
+                     "60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' < 100000. "
+                     "Index QC uploaded for {0} out of {1} samples.".format(
+                                       self.nr_samps_updat, self.nr_samps_tot))
         if self.missing_samps:
             self.abstract.append("The following samples are missing in "
                                           "Demultiplex Stats file: {0}.".format(
