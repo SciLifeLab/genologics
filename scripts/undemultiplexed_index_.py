@@ -122,7 +122,7 @@ class UndemuxInd():
                 
 
     def make_demultiplexed_counts_file(self, demuxfile):
-        demuxfile = demuxfile + '.html'
+        demuxfile = demuxfile + '.csv'
         keys = ['Project', 'Sample ID', 'Lane', '# Reads', 'Index', 
                                     'Index name', '% of >= Q30 Bases (PF)']
         toCSV = []
