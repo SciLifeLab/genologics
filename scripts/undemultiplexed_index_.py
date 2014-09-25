@@ -22,6 +22,7 @@ import os
 import sys
 import logging
 import glob
+import csv
 
 from argparse import ArgumentParser
 from genologics.lims import Lims
