@@ -59,16 +59,10 @@ class UndemuxInd():
         self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(demux_file)
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                                                   undemux_file)
-        #demultiplex_stats = filter(lambda f: f.name == 'Demultiplex Stats'
-        #                                 ,self.process.shared_result_files())[0]
-        #htm_file_path = fh.get_file_path(demultiplex_stats)
-        #self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(htm_file_path)
-        #met_file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
-        #              "/Undemultiplexed_stats.metrics".format(self.flowcell_id))
-        #met_file_path = glob.glob(met_file_path)[0]
-        #self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
-        #                                                          met_file_path)
-        #print self.demultiplex_stats
+        print 'self.demultiplex_stats'
+        print self.demultiplex_stats
+        print 'self.undemultiplexed_stats'
+        print self.undemultiplexed_stats
         self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
                              self.demultiplex_stats['Barcode_lane_statistics']))
     
@@ -94,14 +88,9 @@ class UndemuxInd():
     def set_result_file_udfs(self):
         """populates udfs: '% Perfect Index Reads' and 'Index QC'"""
         for samp_name, target_file in self.target_files.items():
-            print 'LLLLLLLLLLLL'
-            print target_file
             if samp_name in self.barcode_lane_statistics.keys():
                 s_inf = self.barcode_lane_statistics[samp_name]
-                #target_file.udf['% Perfect Index Read'] = float(s_inf['% Perfect Index Read'])
                 target_file.udf['Index QC'] = self._index_QC(s_inf)
-                print target_file.udf['Index QC']
-                print '***********'
                 set_field(target_file)
                 self.nr_samps_updat += 1
             else:
