@@ -141,7 +141,7 @@ class UndemuxInd():
                 row_dict['Lane'] = undet_per_lane['lane'][row]
                 toCSV.append(row_dict)    
         f = open(demuxfile, 'wb')
-        dict_writer = csv.DictWriter(f, keys, dialect='excel')#,delimiter='\t')
+        dict_writer = csv.DictWriter(f, keys, delimiter='\t')
         dict_writer.writer.writerow(keys)
         dict_writer.writerows(toCSV)
         f.close
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('--log', dest = 'log',
                         help=('File name for standard log file, '
                               'for runtime information and problems.'))
-    parser.add_argument('--file', dest = 'file', default = 'demux.csv',
+    parser.add_argument('--file', dest = 'file', default = 'demux.html',
                         help=('File path to demultiplexed metrics file.'))
     args = parser.parse_args()
     lims = Lims(BASEURI, USERNAME, PASSWORD)
