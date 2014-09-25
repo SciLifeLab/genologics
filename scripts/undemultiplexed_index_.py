@@ -59,10 +59,6 @@ class UndemuxInd():
         self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(demux_file)
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                                                   undemux_file)
-        print 'self.demultiplex_stats'
-        print self.demultiplex_stats
-        print 'self.undemultiplexed_stats'
-        print self.undemultiplexed_stats
         self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
                              self.demultiplex_stats['Barcode_lane_statistics']))
     
@@ -124,8 +120,30 @@ class UndemuxInd():
                                                          " {0}".format(warning))
                 
 
-    def make_demultiplexed_counts_file(self):
-        """"""
+    def make_demultiplexed_counts_file(self, demuxfile):
+        keys = ['Project', 'Sample ID', 'Lane', '# Reads', 'Index', 
+                                    'Index name', '% of >= Q30 Bases (PF)']
+        toCSV = []
+        for lane in range(1,9):
+            for row in self.demultiplex_stats['Barcode_lane_statistics']:
+                if row['Lane'] == str(lane):
+                    row_dict = dict([(x, row[x]) for x in keys if x in row])
+                    row_dict['Index name'] = ''
+                    toCSV.append(row_dict)
+            undet_per_lane = self.undemultiplexed_stats[str(lane)]['undemultiplexed_barcodes']
+            nr_undet = len(undet_per_lane['count'])
+            for row in range(nr_undet):
+                row_dict = dict([(x, '') for x in keys])
+                row_dict['# Reads'] = undet_per_lane['count'][row]
+                row_dict['Index'] = undet_per_lane['sequence'][row]
+                row_dict['Index name'] = undet_per_lane['index_name'][row]
+                row_dict['Lane'] = undet_per_lane['lane'][row]
+                toCSV.append(row_dict)    
+        f = open(demuxfile, 'wb')
+        dict_writer = csv.DictWriter(f, keys, dialect='excel')#,delimiter='\t')
+        dict_writer.writer.writerow(keys)
+        dict_writer.writerows(toCSV)
+        f.close
 
     def logging(self):
         self._check_unexpected_yield()
@@ -137,12 +155,12 @@ class UndemuxInd():
                                                  ', '.join(self.missing_samps)))
         print >> sys.stderr, ' '.join(self.abstract)
 
-def main(lims, pid, epp_logger):
+def main(lims, pid, epp_logger, demuxfile):
     process = Process(lims,id = pid)
     UDI = UndemuxInd(process)
     UDI.get_demultiplex_files()
     UDI.set_result_file_udfs()
-    #UDI.make_demultiplexed_counts_file()
+    UDI.make_demultiplexed_counts_file(demuxfile)
     UDI.logging()
     
 
@@ -153,10 +171,11 @@ if __name__ == "__main__":
     parser.add_argument('--log', dest = 'log',
                         help=('File name for standard log file, '
                               'for runtime information and problems.'))
-
+    parser.add_argument('--file', dest = 'file', default = 'demux.csv',
+                        help=('File path to demultiplexed metrics file.'))
     args = parser.parse_args()
     lims = Lims(BASEURI, USERNAME, PASSWORD)
     lims.check_version()
 
     with EppLogger(log_file=args.log, lims=lims, prepend=True) as epp_logger:
-        main(lims, args.pid, epp_logger)
+        main(lims, args.pid, epp_logger, args.file)
