@@ -37,6 +37,9 @@ class Lims(object):
         self.cache = dict()
         # For optimization purposes, enables requests to persist connections
         self.request_session = requests.Session()
+        #The connection pool has a default size of 10
+        self.adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
+        self.request_session.mount('http://', self.adapter)
 
     def get_uri(self, *segments, **query):
         "Return the full URI given the path segments and optional query."
@@ -179,6 +182,25 @@ class Lims(object):
                                   start_index=start_index)
         params.update(self._get_params_udf(udf=udf, udtname=udtname, udt=udt))
         return self._get_instances(Project, params=params)
+
+    def get_sample_number(self, name=None, projectname=None, projectlimsid=None,
+                    udf=dict(), udtname=None, udt=dict(), start_index=None):
+        """Gets the number of samples matching the query without fetching every
+        sample, so it should be faster than len(get_samples()"""
+        params = self._get_params(name=name,
+                                  projectname=projectname,
+                                  projectlimsid=projectlimsid,
+                                  start_index=start_index)
+        params.update(self._get_params_udf(udf=udf, udtname=udtname, udt=udt))
+        root = self.get(self.get_uri(Sample._URI), params=params)
+        total=0
+        while params.get('start-index') is None: # Loop over all pages.
+            total+=len(root.findall("sample"))
+            node = root.find('next-page')
+            if node is None: break
+            root = self.get(node.attrib['uri'], params=params)
+        return total
+
 
     def get_samples(self, name=None, projectname=None, projectlimsid=None,
                     udf=dict(), udtname=None, udt=dict(), start_index=None):
