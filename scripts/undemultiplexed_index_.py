@@ -69,18 +69,21 @@ class UndemuxInd():
         self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(demux_file)
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                                                   undemux_file)
-        self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
-                             self.demultiplex_stats['Barcode_lane_statistics']))
+#        self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
+#                             self.demultiplex_stats['Barcode_lane_statistics']))
     
-    def _index_QC(self, sample_info):
+    def _index_QC(self, target_file):
         """Makes per sample warnings if any of the following holds: 
         % Perfect Index Reads < 60
         % of >= Q30 Bases (PF) < 80
         # Reads < 100000"""
 
-        perf_ind_read = float(sample_info['% Perfect Index Reads'])
-        Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
-        nr_reads = int(sample_info['# Reads'].replace(',',''))
+        perf_ind_read = target_file.udf['% Perfect Index Reads']
+        Q30 = target_file.udf['% of >= Q30 Bases (PF)']
+        nr_reads = int(target_file.udf['# Reads'])
+        #perf_ind_read = float(sample_info['% Perfect Index Reads'])
+        #Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
+        #nr_reads = int(sample_info['# Reads'].replace(',',''))
 
         QC1 = perf_ind_read >= 60
         QC2 = Q30 >= 80
@@ -95,8 +98,8 @@ class UndemuxInd():
         """populates the target file qc-flags"""
         for samp_name, target_file in self.target_files.items():
             if samp_name in self.barcode_lane_statistics.keys():
-                s_inf = self.barcode_lane_statistics[samp_name]
-                target_file.qc_flag = self._index_QC(s_inf)
+                #s_inf = self.barcode_lane_statistics[samp_name]
+                target_file.qc_flag = self._index_QC(target_file)
                 set_field(target_file)
                 self.nr_samps_updat += 1
             else:
