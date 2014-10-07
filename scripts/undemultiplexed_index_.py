@@ -72,18 +72,17 @@ class UndemuxInd():
         self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
                              self.demultiplex_stats['Barcode_lane_statistics']))
     
-    def _index_QC(self, target_file):
+    def _index_QC(self, target_file, sample_info):
         """Makes per sample warnings if any of the following holds: 
         % Perfect Index Reads < 60
         % of >= Q30 Bases (PF) < 80
         # Reads < 100000"""
-        print 'hjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj'
-        print target_file.udf.items()
-        print dict(target_file.udf.items()).keys()
-        
-        perf_ind_read = target_file.udf['% Perfect Index Reads']
-        Q30 = target_file.udf['% of >= Q30 Bases (PF)']
-        nr_reads = int(target_file.udf['# Reads'])
+        try: perf_ind_read = float(target_file.udf['% Perfect Index Reads'])
+        except: perf_ind_read = float(sample_info['% Perfect Index Reads'])
+        try: Q30 = float(target_file.udf['% of >= Q30 Bases (PF)'])
+        except: Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
+        try: nr_reads = int(target_file.udf['# Reads'].replace(',',''))
+        except: nr_reads = int(sample_info['# Reads'].replace(',',''))
         #perf_ind_read = float(sample_info['% Perfect Index Reads'])
         #Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
         #nr_reads = int(sample_info['# Reads'].replace(',',''))
@@ -101,8 +100,8 @@ class UndemuxInd():
         """populates the target file qc-flags"""
         for samp_name, target_file in self.target_files.items():
             if samp_name in self.barcode_lane_statistics.keys():
-                #s_inf = self.barcode_lane_statistics[samp_name]
-                target_file.qc_flag = self._index_QC(target_file)
+                s_inf = self.barcode_lane_statistics[samp_name]
+                target_file.qc_flag = self._index_QC(target_file, s_inf)
                 set_field(target_file)
                 self.nr_samps_updat += 1
             else:
