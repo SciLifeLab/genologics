@@ -78,7 +78,7 @@ class UndemuxInd():
         % of >= Q30 Bases (PF) < 80
         # Reads < 100000"""
         print 'hjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj'
-        print target_file.udf
+        print target_file.udf.items()
         print dict(target_file.udf.items()).keys()
         
         perf_ind_read = target_file.udf['% Perfect Index Reads']
