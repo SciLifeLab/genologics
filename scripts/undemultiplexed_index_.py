@@ -69,8 +69,8 @@ class UndemuxInd():
         self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(demux_file)
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                                                   undemux_file)
-#        self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
-#                             self.demultiplex_stats['Barcode_lane_statistics']))
+        self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
+                             self.demultiplex_stats['Barcode_lane_statistics']))
     
     def _index_QC(self, target_file):
         """Makes per sample warnings if any of the following holds: 
