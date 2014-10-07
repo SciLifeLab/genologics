@@ -76,16 +76,14 @@ class UndemuxInd():
         """Makes per sample warnings if any of the following holds: 
         % Perfect Index Reads < 60
         % of >= Q30 Bases (PF) < 80
-        # Reads < 100000"""
+        # Reads < 100000
+        Reads from target file udf if they are set. Otherwise from file system."""
         try: perf_ind_read = float(target_file.udf['% Perfect Index Read'])
         except: perf_ind_read = float(sample_info['% Perfect Index Reads'])
         try: Q30 = float(target_file.udf['% Bases >=Q30'])
         except: Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
         try: nr_reads = int(target_file.udf['# Reads'].replace(',',''))
         except: nr_reads = int(sample_info['# Reads'].replace(',',''))
-        #perf_ind_read = float(sample_info['% Perfect Index Reads'])
-        #Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
-        #nr_reads = int(sample_info['# Reads'].replace(',',''))
 
         QC1 = perf_ind_read >= 60
         QC2 = Q30 >= 80
