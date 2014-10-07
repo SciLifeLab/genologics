@@ -77,9 +77,9 @@ class UndemuxInd():
         % Perfect Index Reads < 60
         % of >= Q30 Bases (PF) < 80
         # Reads < 100000"""
-        try: perf_ind_read = float(target_file.udf['% Perfect Index Reads'])
+        try: perf_ind_read = float(target_file.udf['% Perfect Index Read'])
         except: perf_ind_read = float(sample_info['% Perfect Index Reads'])
-        try: Q30 = float(target_file.udf['% of >= Q30 Bases (PF)'])
+        try: Q30 = float(target_file.udf['% Bases >=Q30'])
         except: Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
         try: nr_reads = int(target_file.udf['# Reads'].replace(',',''))
         except: nr_reads = int(sample_info['# Reads'].replace(',',''))
