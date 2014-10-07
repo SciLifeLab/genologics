@@ -161,7 +161,7 @@ class UndemuxInd():
     def logging(self):
         """Collects and prints logging info."""
         self._check_unexpected_yield()
-        self.abstract.append("Index QC tressholds: '% Perfect Index Reads' < "
+        self.abstract.append("The qc thresholds are: '% Perfect Index Reads' < "
                      "60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' < 100000. "
                      "Index QC uploaded for {0} out of {1} samples.".format(
                                        self.nr_samps_updat, self.nr_samps_tot))
