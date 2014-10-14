@@ -86,7 +86,7 @@ class AppQC():
         test_file = open(app_qc_file,'wb')
         dict_writer = csv.DictWriter(test_file, keys, dialect = 'excel')
         dict_writer.writer.writerow(keys)
-        dict_writer.writerows(2csv)
+        dict_writer.writerows(list2csv)
         test_file.close()
 
     def logging(self):
