@@ -67,7 +67,7 @@ class AppQC():
         for samp_name, target_file in self.target_files.items():
             if samp_name in self.app_QC.keys():
                 qc_passed = self.app_QC[samp_name]['automated_qc']['qc_passed']
-                target_file.udf['App QC'] = self._index_QC(target_file, s_inf)
+                target_file.udf['App QC'] = qc_passed
                 set_field(target_file)
                 self.nr_samps_updat += 1
             else:
