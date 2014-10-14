@@ -65,7 +65,7 @@ class AppQC():
     def set_result_file_udfs(self):
         """populates the target file App QC udf"""
         for samp_name, target_file in self.target_files.items():
-                print >> sys.stderr,  samp_name
+            print >> sys.stderr,  samp_name
             if samp_name in self.app_QC.keys():
                 qc_passed = self.app_QC[samp_name]['automated_qc']['qc_passed']
                 sample = target_file.samples[0]
