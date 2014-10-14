@@ -39,8 +39,6 @@ from genologics.config import BASEURI, USERNAME, PASSWORD
 from genologics.entities import Process
 from genologics.epp import EppLogger
 from genologics.epp import set_field
-#from genologics.epp import ReadResultFiles
-#from qc_parsers import FlowcellRunMetricsParser
 
 class AppQC():
     def __init__(self, process):
@@ -96,12 +94,11 @@ class AppQC():
     def logging(self):
         """Collects and prints logging info."""
         self.abstract.append("qc-flaggs uploaded for {0} out of {1} samples."
-              "The qc thresholds are: '% Perfect Index Reads' < "
-              "60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' < 100000.".format(
+                            "See App_QC_file for details.".format(
                                        self.nr_samps_updat, self.nr_samps_tot))
         if self.missing_samps:
             self.abstract.append("The following samples are missing in "
-                                          "Demultiplex Stats file: {0}.".format(
+                                          "App_QC_file: {0}.".format(
                                                  ', '.join(self.missing_samps)))
         print >> sys.stderr, ' '.join(self.abstract)
 
