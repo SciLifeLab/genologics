@@ -76,11 +76,11 @@ class AppQC():
     def make_App_QC_file(self, app_qc_file):
         """Formates a easy to read App QC file."""
         keys= ['smaple', 'qc_passed', 'qc_reason']
-        2csv = []
+        list2csv = []
         for samp, info in self.app_QC.items():
             d = info['automated_qc']
             d['smaple'] = key
-            2csv.append(d)
+            list2csv.append(d)
 
         app_qc_file = app_qc_file + '.csv'
         test_file = open(app_qc_file,'wb')
