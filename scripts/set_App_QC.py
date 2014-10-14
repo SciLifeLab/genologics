@@ -91,7 +91,6 @@ class AppQC():
 
     def logging(self):
         """Collects and prints logging info."""
-        self._check_unexpected_yield()
         self.abstract.append("qc-flaggs uploaded for {0} out of {1} samples."
               "The qc thresholds are: '% Perfect Index Reads' < "
               "60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' < 100000.".format(
