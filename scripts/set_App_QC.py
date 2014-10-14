@@ -64,7 +64,7 @@ class AppQC():
         """populates the target file App QC udf"""
         for samp_name, target_file in self.target_files.items():
             if samp_name in self.app_QC.keys():
-                qc_passed = self.app_QC[samp_name]['automated_qc']['qc_passed']
+                qc_passed = str(self.app_QC[samp_name]['automated_qc']['qc_passed'])
                 sample = target_file.samples[0]
                 sample.udf['App QC'] = qc_passed
                 set_field(sample)
