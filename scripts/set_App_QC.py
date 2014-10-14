@@ -45,8 +45,8 @@ from genologics.epp import set_field
 class AppQC():
     def __init__(self, process):
         self.app_QC = {}
-        self.project_name = process.result_files()[0].samples[0].project.name # hacky but no better way found
-        self.target_files = dict((r.samples[0].name, r) for r in process.result_files())
+        self.project_name = process.all_outputs()[0].samples[0].project.name # hacky but no better way found
+        self.target_files = dict((r.samples[0].name, r) for r in process.all_outputs())
         self.missing_samps = []
         self.nr_samps_updat = 0
         self.abstract = []
