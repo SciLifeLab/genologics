@@ -146,15 +146,16 @@ class UndemuxInd():
                     row_dict = dict([(x, row[x]) for x in keys if x in row])
                     row_dict['Index name'] = ''
                     toCSV.append(row_dict)
-            undet_per_lane = self.undemultiplexed_stats[str(lane)]['undemultiplexed_barcodes']
-            nr_undet = len(undet_per_lane['count'])
-            for row in range(nr_undet):
-                row_dict = dict([(x, '') for x in keys])
-                row_dict['# Reads'] = undet_per_lane['count'][row]
-                row_dict['Index'] = undet_per_lane['sequence'][row]
-                row_dict['Index name'] = undet_per_lane['index_name'][row]
-                row_dict['Lane'] = undet_per_lane['lane'][row]
-                toCSV.append(row_dict)    
+            if str(lane) in self.undemultiplexed_stats.keys():
+                undet_per_lane = self.undemultiplexed_stats[str(lane)]['undemultiplexed_barcodes']
+                nr_undet = len(undet_per_lane['count'])
+                for row in range(nr_undet):
+                    row_dict = dict([(x, '') for x in keys])
+                    row_dict['# Reads'] = undet_per_lane['count'][row]
+                    row_dict['Index'] = undet_per_lane['sequence'][row]
+                    row_dict['Index name'] = undet_per_lane['index_name'][row]
+                    row_dict['Lane'] = undet_per_lane['lane'][row]
+                    toCSV.append(row_dict)    
         f = open(demuxfile, 'wb')
         dict_writer = csv.DictWriter(f, keys, dialect='excel')
         dict_writer.writer.writerow(keys)
