@@ -864,7 +864,7 @@ class Process(Entity):
     # instrument XXX
     # process_parameters XXX
 
-    def outputs_per_input(self, inart, ResultFile = False, SharedResultFile = False):
+    def outputs_per_input(self, inart, ResultFile = False, SharedResultFile = False,  Analyte = False):
         """Getting all the output artifacts related to a particual input artifact"""
         
         inouts = filter(lambda io: io[0]['limsid'] == inart, self.input_output_maps)
@@ -872,6 +872,8 @@ class Process(Entity):
             inouts = filter(lambda io: io[1]['output_type'] == 'ResultFile', inouts)
         elif SharedResultFile:
             inouts = filter(lambda io: io[1]['output_type'] == 'SharedResultFile', inouts)
+        elif Analyte:
+            inouts = filter(lambda io: io[1]['output_type'] == 'Analyte', inouts)
         outs = map(lambda io: io[1]['uri'], inouts)
         return outs
 
