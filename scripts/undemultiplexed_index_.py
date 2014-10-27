@@ -50,7 +50,7 @@ class UndemuxInd():
         self.undemultiplex_stats = None 
         self.abstract = []
         self.nr_lane_samps_updat = 0
-        self.nr_lane_samps_failed = 0
+        self.nr_lane_samps_tot = 0
 
     def get_demultiplex_files(self):
         """ Files are read from the file msf system. Path hard coded."""
@@ -73,19 +73,16 @@ class UndemuxInd():
             lane = pool.location[1][0] #getting lane number
             outarts_per_lane = self.process.outputs_per_input(
                                           pool.id, ResultFile = True)
-            for lane_samp in self.demultiplex_stats['Barcode_lane_statistics']:
-                if lane == lane_samp['Lane']:
-                    samp = lane_samp['Sample ID']
-                    for target_file in outarts_per_lane:
-                        samp_name = target_file.samples[0].name
+            for target_file in outarts_per_lane:
+                self.nr_lane_samps_tot += 1
+                samp_name = target_file.samples[0].name
+                for lane_samp in self.demultiplex_stats['Barcode_lane_statistics']:
+                    if lane == lane_samp['Lane']:
+                        samp = lane_samp['Sample ID']
                         if samp == samp_name:
-                            try:
-                                target_file.qc_flag = self._index_QC(target_file, lane_samp)
-                                set_field(target_file)
-                                self.nr_lane_samps_updat += 1
-                            except:
-                                self.nr_lane_samps_failed += 1
-                                pass
+                        target_file.qc_flag = self._index_QC(target_file, lane_samp)
+                        set_field(target_file)
+                        self.nr_lane_samps_updat += 1
  
     def _index_QC(self, target_file, sample_info):
         """Makes per sample warnings if any of the following holds: 
@@ -159,10 +156,10 @@ class UndemuxInd():
         """Collects and prints logging info."""
 
         self._check_unexpected_yield()
-        self.abstract.append("QC-flaggs uploaded for {0} analytes. Failed to "
-                "get QC for {1} analytes. The QC thresholds are: '% Perfect "
+        self.abstract.append("QC-data found and QC-flags uploaded for {0} out "
+                "of {1} analytes. The QC thresholds are: '% Perfect "
                 "Index Reads' < 60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' "
-                "< 100000. ".format(self.nr_lane_samps_updat, self.nr_lane_samps_failed))
+                "< 100000. ".format(self.nr_lane_samps_updat, self.nr_lane_samps_tot))
         print >> sys.stderr, ' '.join(self.abstract)
 
     def _check_unexpected_yield(self):
