@@ -34,6 +34,7 @@ class QualityFilter():
     def __init__(self, process):
         self.process = process
         self.result_files = process.result_files()
+        self.source_file = None
         self.QF_from_file = {}
         self.missing_samps = []
         self.abstract = []
@@ -42,23 +43,41 @@ class QualityFilter():
 
     def get_and_set_yield_and_Q30(self):
         file_handler = ReadResultFiles(self.process)
-        source_file = file_handler.shared_files['Quality Filter']
-        target_files = dict((r.samples[0].name, r) for r in self.result_files)
-        self.nr_samps_tot = str(len(target_files))
-        self.QF_from_file = file_handler.format_file(source_file, 
-                               name = 'Quality Filter', first_header = 'Sample')
-        for samp_name, target_file in target_files.items():
-            self._set_udfs(samp_name, target_file)
+        self.source_file = file_handler.shared_files['Quality Filter']
+        self._format_file()
+        input_pools = self.process.all_inputs()
+        for pool in input_pools:
+            lane = pool.location[1][0] #getting lane number
+            outarts_per_lane = self.process.outputs_per_input(
+                                          pool.id, ResultFile = True)
+            for target_file in outarts_per_lane:
+                self.nr_samps_tot += 1
+                samp_name = target_file.samples[0].name
+                self._set_udfs(samp_name, target_file, lane)
         self._logging()
 
-    def _set_udfs(self, samp_name, target_file):
-        if samp_name in self.QF_from_file.keys():
-            s_inf = self.QF_from_file[samp_name]
-            target_file.udf['# Reads'] = int(s_inf['# Reads'])
-            target_file.udf['% Bases >=Q30'] = float(s_inf['% Bases >=Q30'])
-            self.nr_samps_updat += 1
-        else:
-            self.missing_samps.append(samp_name)
+    def _format_file(self):
+        keys = self.source_file[0]
+        l_ind = keys.index('Lane')
+        s_ind = keys.index('Sample')
+        q_ind = keys.index('% Bases >=Q30')
+        y_ind = keys.index('# Reads')
+        for line in self.source_file[1:]:
+            lane = line[l_ind]
+            samp = line[s_ind]
+            self.QF_from_file[lane] = {} if not lane in self.QF_from_file.keys()
+            self.QF_from_file[lane][samp] = {'% Bases >=Q30' : line[q_ind],
+                                                   '# Reads' : line[y_ind]}
+  
+    def _set_udfs(self, samp_name, target_file, lane):
+        if lane in self.QF_from_file.keys():
+            if samp_name in self.QF_from_file[lane].keys():
+                s_inf = self.QF_from_file[lane][samp_name]
+                target_file.udf['# Reads'] = int(s_inf['# Reads'])
+                target_file.udf['% Bases >=Q30'] = float(s_inf['% Bases >=Q30'])
+                self.nr_samps_updat += 1
+            else:
+                self.missing_samps.append(samp_name)
         set_field(target_file)
 
     def _logging(self):
