@@ -46,56 +46,28 @@ class UndemuxInd():
     def __init__(self, process):
         self.process = process
         self.flowcell_id = process.all_inputs()[0].container.name
-        self.target_files = dict((r.samples[0].name, r) for r in process.result_files())
-        self.nr_samps_tot = str(len(self.target_files))
         self.demultiplex_stats = None
-        self.undemultiplex_stats = None
-        self.barcode_lane_statistics = None
+        self.undemultiplex_stats = None 
         self.abstract = []
- 
-        self.QF_from_file = {}
-        self.missing_samps = []
-        self.nr_samps_updat = 0
+        self.nr_lane-samps_updat = 0
+        self.nr_lane-samps_failed = 0
 
     def get_demultiplex_files(self):
         """ Files are read from the file msf system. Path hard coded."""
-        fh = ReadResultFiles(self.process)
+
         FRMP = FlowcellRunMetricsParser()
         file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
                                                    "/".format(self.flowcell_id))
         file_path = glob.glob(file_path)[0]
-        demux_file = file_path + 'Demultiplex_Stats.htm'
-        undemux_file = file_path + 'Undemultiplexed_stats.metrics'
-        self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(demux_file)
+        self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(
+                                            file_path + 'Demultiplex_Stats.htm')
         self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
-                                                                  undemux_file)
-        self.barcode_lane_statistics = dict(map(lambda f: (f['Sample ID'],f) ,
-                             self.demultiplex_stats['Barcode_lane_statistics']))
-    
-    def _index_QC(self, target_file, sample_info):
-        """Makes per sample warnings if any of the following holds: 
-        % Perfect Index Reads < 60
-        % of >= Q30 Bases (PF) < 80
-        # Reads < 100000
-        Reads from target file udf if they are set. Otherwise from file system."""
-        try: perf_ind_read = float(target_file.udf['% Perfect Index Read'])
-        except: perf_ind_read = float(sample_info['% Perfect Index Reads'])
-        try: Q30 = float(target_file.udf['% Bases >=Q30'])
-        except: Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
-        try: nr_reads = int(target_file.udf['# Reads'].replace(',',''))
-        except: nr_reads = int(sample_info['# Reads'].replace(',',''))
-
-        QC1 = perf_ind_read >= 60
-        QC2 = Q30 >= 80
-        QC3 = nr_reads >= 100000
-
-        if QC1 and QC2 and QC3:
-            return 'PASSED'
-        else:
-            return 'FAILED'
+                                    file_path + 'Undemultiplexed_stats.metrics')
+ 
 
     def set_result_file_udfs(self):
         """populates the target file qc-flags"""
+
         input_pools = self.process.all_inputs()
         for pool in input_pools:
             lane = pool.location[1][0] #getting lane number
@@ -107,41 +79,50 @@ class UndemuxInd():
                     for target_file in outarts_per_lane:
                         samp_name = target_file.samples[0].name
                         if samp == samp_name:
-                            target_file.qc_flag = self._index_QC(target_file, lane_samp)
-                            set_field(target_file)
-                            self.nr_samps_updat += 1
+                            try:
+                                target_file.qc_flag = self._index_QC(target_file, lane_samp)
+                                set_field(target_file)
+                                self.nr_lane-samps_updat += 1
+                            except:
+                                self.nr_lane-samps_failed += 1
+                                pass
+ 
+    def _index_QC(self, target_file, sample_info):
+        """Makes per sample warnings if any of the following holds: 
 
+        % Perfect Index Reads < 60
+        % of >= Q30 Bases (PF) < 80
+        # Reads < 100000
 
-    def _check_unexpected_yield(self):
-        """Warning if any unexpected index has yield > 0.5M"""
-        warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
-        warning = ''
-        for l, lane_inf in self.undemultiplexed_stats.items():
-            counts = lane_inf['undemultiplexed_barcodes']['count']
-            sequence = lane_inf['undemultiplexed_barcodes']['sequence']
-            index_name = lane_inf['undemultiplexed_barcodes']['index_name']
-            lanes = lane_inf['undemultiplexed_barcodes']['lane']
-            for i, c in enumerate(counts):
-                if int(c) > 500000:
-                    ##  Format warning message
-                    lane = lanes[i]
-                    if index_name[i]:
-                        s = ' '.join([sequence[i],'(',index_name[i],')'])
-                        warn[lane].append(s)
-                    else:
-                        warn[lane].append(sequence[i])
-        for l, w in warn.items():
-            if w:
-                inds = ', '.join(w)
-                warning = warning + ''.join([inds,' on Lane ', l, ', '])
-        if warning:
-            self.abstract.append("WARNING: High yield of unexpected index:"
-                                                         " {0}".format(warning))
-                
+        OBS: Reads from target file udf if they are already set. Otherwise from 
+        file system!!!"""
+
+        try: 
+            perf_ind_read = float(target_file.udf['% Perfect Index Read'])
+        except: 
+            perf_ind_read = float(sample_info['% Perfect Index Reads'])
+        try: 
+            Q30 = float(target_file.udf['% Bases >=Q30'])
+        except: 
+            Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
+        try: 
+            nr_reads = int(target_file.udf['# Reads'].replace(',',''))
+        except: 
+            nr_reads = int(sample_info['# Reads'].replace(',',''))
+
+        QC1 = (perf_ind_read >= 60)
+        QC2 = (Q30 >= 80)
+        QC3 = (nr_reads >= 100000)
+
+        if QC1 and QC2 and QC3:
+            return 'PASSED'
+        else:
+            return 'FAILED'
 
     def make_demultiplexed_counts_file(self, demuxfile):
-        """reformats the content of the demultiplex and undemultiplexed files
+        """Reformats the content of the demultiplex and undemultiplexed files
         to be more easy to read."""
+
         demuxfile = demuxfile + '.csv'
         keys = ['Project', 'Sample ID', 'Lane', '# Reads', 'Index', 
                                     'Index name', '% of >= Q30 Bases (PF)']
@@ -170,16 +151,41 @@ class UndemuxInd():
 
     def logging(self):
         """Collects and prints logging info."""
+
         self._check_unexpected_yield()
-        self.abstract.append("qc-flaggs uploaded for {0} out of {1} samples."
-              "The qc thresholds are: '% Perfect Index Reads' < "
-              "60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' < 100000.".format(
-                                       self.nr_samps_updat, self.nr_samps_tot))
-        if self.missing_samps:
-            self.abstract.append("The following samples are missing in "
-                                          "Demultiplex Stats file: {0}.".format(
-                                                 ', '.join(self.missing_samps)))
+        self.abstract.append("qc-flaggs uploaded for {0} analytes. Failed to "
+                "get qc for {1} analytes. The qc thresholds are: '% Perfect "
+                "Index Reads' < 60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' "
+                "< 100000.".format(self.nr_lane-samps_updat, self.nr_lane-samps_failed))
         print >> sys.stderr, ' '.join(self.abstract)
+
+    def _check_unexpected_yield(self):
+        """Warning if any unexpected index has yield > 0.5M"""
+
+        warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
+        warning = ''
+        for l, lane_inf in self.undemultiplexed_stats.items():
+            counts = lane_inf['undemultiplexed_barcodes']['count']
+            sequence = lane_inf['undemultiplexed_barcodes']['sequence']
+            index_name = lane_inf['undemultiplexed_barcodes']['index_name']
+            lanes = lane_inf['undemultiplexed_barcodes']['lane']
+            for i, c in enumerate(counts):
+                if int(c) > 500000:
+                    ##  Format warning message
+                    lane = lanes[i]
+                    if index_name[i]:
+                        s = ' '.join([sequence[i],'(',index_name[i],')'])
+                        warn[lane].append(s)
+                    else:
+                        warn[lane].append(sequence[i])
+        for l, w in warn.items():
+            if w:
+                inds = ', '.join(w)
+                warning = warning + ''.join([inds,' on Lane ', l, ', '])
+        if warning:
+            self.abstract.append("WARNING: High yield of unexpected index:"
+                                                         " {0}".format(warning))
+
 
 def main(lims, pid, epp_logger, demuxfile):
     process = Process(lims,id = pid)
