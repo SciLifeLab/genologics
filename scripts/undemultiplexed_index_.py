@@ -39,7 +39,6 @@ from genologics.config import BASEURI, USERNAME, PASSWORD
 from genologics.entities import Process
 from genologics.epp import EppLogger
 from genologics.epp import set_field
-from genologics.epp import ReadResultFiles
 from qc_parsers import FlowcellRunMetricsParser
 
 class UndemuxInd():
@@ -92,7 +91,8 @@ class UndemuxInd():
         # Reads < 100000
 
         OBS: Reads from target file udf if they are already set. Otherwise from 
-        file system!!!"""
+        file system!!! This is to take into account yield and quality after 
+        quality filtering if performed."""
 
         try: 
             perf_ind_read = float(target_file.udf['% Perfect Index Read'])
@@ -103,22 +103,15 @@ class UndemuxInd():
         except: 
             Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
         try:
-            print '**'
-            print target_file.udf['# Reads']
-            print '**'
             nr_reads = int(target_file.udf['# Reads'])
         except: 
             nr_reads = int(sample_info['# Reads'].replace(',',''))
 
         QC1 = (perf_ind_read >= 60)
         QC2 = (Q30 >= 80)
-        print nr_reads
         QC3 = (nr_reads >= 100000)
-        print QC1
-        print QC2
-        print QC3
+
         if QC1 and QC2 and QC3:
-            print 'hej'
             return 'PASSED'
         else:
             return 'FAILED'
