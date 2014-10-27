@@ -109,7 +109,8 @@ class UndemuxInd():
 
         QC1 = (perf_ind_read >= 60)
         QC2 = (Q30 >= 80)
-        QC3 = (nr_reads >= 100000)
+        print nr_reads
+        QC3 = (float(nr_reads) >= 100000)
         print QC1
         print QC2
         print QC3
