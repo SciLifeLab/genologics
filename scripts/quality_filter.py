@@ -65,7 +65,8 @@ class QualityFilter():
         for line in self.source_file[1:]:
             lane = line[l_ind]
             samp = line[s_ind]
-            self.QF_from_file[lane] = {} if not lane in self.QF_from_file.keys()
+            if not lane in self.QF_from_file.keys():
+                self.QF_from_file[lane] = {}
             self.QF_from_file[lane][samp] = {'% Bases >=Q30' : line[q_ind],
                                                    '# Reads' : line[y_ind]}
   
