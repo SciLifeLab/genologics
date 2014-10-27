@@ -39,7 +39,7 @@ class QualityFilter():
         self.missing_samps = []
         self.abstract = []
         self.nr_samps_updat = 0
-        self.nr_samps_tot = '-'
+        self.nr_samps_tot = 0
 
     def get_and_set_yield_and_Q30(self):
         file_handler = ReadResultFiles(self.process)
