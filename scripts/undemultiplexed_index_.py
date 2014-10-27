@@ -49,8 +49,8 @@ class UndemuxInd():
         self.demultiplex_stats = None
         self.undemultiplex_stats = None 
         self.abstract = []
-        self.nr_lane-samps_updat = 0
-        self.nr_lane-samps_failed = 0
+        self.nr_lane_samps_updat = 0
+        self.nr_lane_samps_failed = 0
 
     def get_demultiplex_files(self):
         """ Files are read from the file msf system. Path hard coded."""
@@ -82,9 +82,9 @@ class UndemuxInd():
                             try:
                                 target_file.qc_flag = self._index_QC(target_file, lane_samp)
                                 set_field(target_file)
-                                self.nr_lane-samps_updat += 1
+                                self.nr_lane_samps_updat += 1
                             except:
-                                self.nr_lane-samps_failed += 1
+                                self.nr_lane_samps_failed += 1
                                 pass
  
     def _index_QC(self, target_file, sample_info):
@@ -156,7 +156,7 @@ class UndemuxInd():
         self.abstract.append("qc-flaggs uploaded for {0} analytes. Failed to "
                 "get qc for {1} analytes. The qc thresholds are: '% Perfect "
                 "Index Reads' < 60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' "
-                "< 100000.".format(self.nr_lane-samps_updat, self.nr_lane-samps_failed))
+                "< 100000.".format(self.nr_lane_samps_updat, self.nr_lane_samps_failed))
         print >> sys.stderr, ' '.join(self.abstract)
 
     def _check_unexpected_yield(self):
