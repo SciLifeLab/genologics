@@ -110,8 +110,11 @@ class UndemuxInd():
         QC1 = (perf_ind_read >= 60)
         QC2 = (Q30 >= 80)
         QC3 = (nr_reads >= 100000)
-
+        print QC1
+        print QC2
+        print QC3
         if QC1 and QC2 and QC3:
+            print 'hej'
             return 'PASSED'
         else:
             return 'FAILED'
