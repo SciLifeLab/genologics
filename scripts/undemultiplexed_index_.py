@@ -102,15 +102,18 @@ class UndemuxInd():
             Q30 = float(target_file.udf['% Bases >=Q30'])
         except: 
             Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
-        try: 
-            nr_reads = int(target_file.udf['# Reads'].replace(',',''))
+        try:
+            print '**'
+            print target_file.udf['# Reads']
+            print '**'
+            nr_reads = int(target_file.udf['# Reads'])
         except: 
             nr_reads = int(sample_info['# Reads'].replace(',',''))
 
         QC1 = (perf_ind_read >= 60)
         QC2 = (Q30 >= 80)
         print nr_reads
-        QC3 = (float(nr_reads) >= 100000)
+        QC3 = (nr_reads >= 100000)
         print QC1
         print QC2
         print QC3
