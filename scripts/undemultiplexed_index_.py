@@ -143,11 +143,17 @@ class UndemuxInd():
                     row_dict['Index name'] = undet_per_lane['index_name'][row]
                     row_dict['Lane'] = undet_per_lane['lane'][row]
                     toCSV.append(row_dict)    
-        f = open(demuxfile, 'wb')
-        dict_writer = csv.DictWriter(f, keys, dialect='excel')
-        dict_writer.writer.writerow(keys)
-        dict_writer.writerows(toCSV)
-        f.close
+        try:
+            f = open(demuxfile, 'wb')
+            dict_writer = csv.DictWriter(f, keys, dialect='excel')
+            dict_writer.writer.writerow(keys)
+            dict_writer.writerows(toCSV)
+            f.close
+            self.abstract.append("A Metrics file has been created with "
+                      "demultiplexed and undemultiplexed counts for debugging.")
+        except:
+            self.abstract.append("Could not generate a Metrics file with "
+                                    "demultiplexed and undemultiplexed counts.")
 
     def logging(self):
         """Collects and prints logging info."""
@@ -156,7 +162,7 @@ class UndemuxInd():
         self.abstract.append("qc-flaggs uploaded for {0} analytes. Failed to "
                 "get qc for {1} analytes. The qc thresholds are: '% Perfect "
                 "Index Reads' < 60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' "
-                "< 100000.".format(self.nr_lane_samps_updat, self.nr_lane_samps_failed))
+                "< 100000. ".format(self.nr_lane_samps_updat, self.nr_lane_samps_failed))
         print >> sys.stderr, ' '.join(self.abstract)
 
     def _check_unexpected_yield(self):
