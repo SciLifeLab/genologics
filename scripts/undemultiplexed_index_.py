@@ -96,14 +96,20 @@ class UndemuxInd():
 
     def set_result_file_udfs(self):
         """populates the target file qc-flags"""
-        for samp_name, target_file in self.target_files.items():
-            if samp_name in self.barcode_lane_statistics.keys():
-                s_inf = self.barcode_lane_statistics[samp_name]
-                target_file.qc_flag = self._index_QC(target_file, s_inf)
-                set_field(target_file)
-                self.nr_samps_updat += 1
-            else:
-                self.missing_samps.append(samp_name)
+        input_pools = self.process.all_inputs()
+        for pool in input_pools:
+            lane = pool.location[1][0] #getting lane number
+            outarts_per_lane = self.process.outputs_per_input(
+                                          pool.id, ResultFile = True)
+            for lane_samp in self.demultiplex_stats['Barcode_lane_statistics']:
+                if lane == lane_samp['Lane']:
+                    samp = lane_samp['Sample ID']
+                    for target_file in outarts_per_lane:
+                        samp_name = target_file.samples[0].name
+                        if samp == samp_name:
+                            target_file.qc_flag = self._index_QC(target_file, lane_samp)
+                            set_field(target_file)
+                            self.nr_samps_updat += 1
 
 
     def _check_unexpected_yield(self):
