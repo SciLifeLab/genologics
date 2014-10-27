@@ -159,8 +159,8 @@ class UndemuxInd():
         """Collects and prints logging info."""
 
         self._check_unexpected_yield()
-        self.abstract.append("qc-flaggs uploaded for {0} analytes. Failed to "
-                "get qc for {1} analytes. The qc thresholds are: '% Perfect "
+        self.abstract.append("QC-flaggs uploaded for {0} analytes. Failed to "
+                "get QC for {1} analytes. The QC thresholds are: '% Perfect "
                 "Index Reads' < 60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' "
                 "< 100000. ".format(self.nr_lane_samps_updat, self.nr_lane_samps_failed))
         print >> sys.stderr, ' '.join(self.abstract)
