@@ -80,9 +80,9 @@ class UndemuxInd():
                     if lane == lane_samp['Lane']:
                         samp = lane_samp['Sample ID']
                         if samp == samp_name:
-                        target_file.qc_flag = self._index_QC(target_file, lane_samp)
-                        set_field(target_file)
-                        self.nr_lane_samps_updat += 1
+                            target_file.qc_flag = self._index_QC(target_file, lane_samp)
+                            set_field(target_file)
+                            self.nr_lane_samps_updat += 1
  
     def _index_QC(self, target_file, sample_info):
         """Makes per sample warnings if any of the following holds: 
