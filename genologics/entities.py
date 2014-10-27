@@ -869,11 +869,11 @@ class Process(Entity):
         
         inouts = filter(lambda io: io[0]['limsid'] == inart, self.input_output_maps)
         if ResultFile:
-            inouts = filter(lambda io: io[1]['output_type'] == 'ResultFile', inouts)
+            inouts = filter(lambda io: io[1]['output-type'] == 'ResultFile', inouts)
         elif SharedResultFile:
-            inouts = filter(lambda io: io[1]['output_type'] == 'SharedResultFile', inouts)
+            inouts = filter(lambda io: io[1]['output-type'] == 'SharedResultFile', inouts)
         elif Analyte:
-            inouts = filter(lambda io: io[1]['output_type'] == 'Analyte', inouts)
+            inouts = filter(lambda io: io[1]['output-type'] == 'Analyte', inouts)
         outs = map(lambda io: io[1]['uri'], inouts)
         return outs
 
