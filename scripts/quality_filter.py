@@ -21,6 +21,7 @@ Written by Maya Brandi
 import os
 import sys
 import logging
+import csv
 
 from argparse import ArgumentParser
 from genologics.lims import Lims
