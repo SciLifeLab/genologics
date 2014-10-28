@@ -173,7 +173,7 @@ class UndemuxInd():
             index_name = lane_inf['undemultiplexed_barcodes']['index_name']
             lanes = lane_inf['undemultiplexed_barcodes']['lane']
             for i, c in enumerate(counts):
-                if int(c) > 500000:
+                if int(c) > 100000:
                     ##  Format warning message
                     lane = lanes[i]
                     if index_name[i]:
