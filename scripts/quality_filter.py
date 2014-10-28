@@ -32,6 +32,7 @@ from genologics.epp import set_field
 class QualityFilter():
     def __init__(self, process):
         self.process = process
+        self.project_name = process.all_outputs()[0].samples[0].project.name
         self.result_files = process.result_files()
         self.source_file = None
         self.QF_from_file = {}
