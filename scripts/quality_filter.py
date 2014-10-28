@@ -28,7 +28,6 @@ from genologics.config import BASEURI, USERNAME, PASSWORD
 from genologics.entities import Process
 from genologics.epp import EppLogger
 from genologics.epp import set_field
-from genologics.epp import ReadResultFiles
 
 class QualityFilter():
     def __init__(self, process):
@@ -41,9 +40,14 @@ class QualityFilter():
         self.nr_samps_updat = 0
         self.nr_samps_tot = 0
 
+    def read_QF_file(self):
+        """ App QC file is read from the file msf system. Path hard coded."""
+        file_path = ("/srv/mfs/QF/{0}.csv".format(self.project_name))
+        of = open(file_path ,'r')
+        self.source_file = [row for row in csv.reader(of.read().splitlines())]
+        of.close()
+
     def get_and_set_yield_and_Q30(self):
-        file_handler = ReadResultFiles(self.process)
-        self.source_file = file_handler.shared_files['Quality Filter']
         self._format_file()
         input_pools = self.process.all_inputs()
         for pool in input_pools:
@@ -92,6 +96,7 @@ class QualityFilter():
 def main(lims, pid, epp_logger):
     process = Process(lims,id = pid)
     QF = QualityFilter(process)
+    QF.read_QF_file()
     QF.get_and_set_yield_and_Q30()
     
 
