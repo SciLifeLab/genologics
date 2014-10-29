@@ -2,7 +2,7 @@
 DESC = """This EPP script reads demultiplex end undemultiplexed yields from file
 system and then does the following
     
-1)  Sets the output artifact qc-flaggs based on the tresholds: 
+1)  Sets the output artifact qc-flaggs based on the thresholds: 
         % Perfect Index Reads < 60
         %Q30 < 80
         expected index < 0.1 M
@@ -121,20 +121,20 @@ class UndemuxInd():
             nr_reads = int(sample_info['# Reads'].replace(',',''))
             logging.info("Getting # Reads from file")
 
-        QC1 = (perf_ind_read >= self.QC_tresholds['perf_ind'])
-        QC2 = (Q30 >= self.QC_tresholds['%Q30'])
-        QC3 = (nr_reads >= self.QC_tresholds['nr_read'])
+        QC1 = (perf_ind_read >= self.QC_thresholds['perf_ind'])
+        QC2 = (Q30 >= self.QC_thresholds['%Q30'])
+        QC3 = (nr_reads >= self.QC_thresholds['nr_read'])
 
         if QC1 and QC2 and QC3:
             return 'PASSED'
         else:
             return 'FAILED'
 
-    def _get_QC_tresholds(self):
+    def _get_QC_thresholds(self):
         try:
-            self.QC_tresholds['perf_ind'] = process.udf['Threshold for % Perfect Index Reads']
-            self.QC_tresholds['%Q30'] = process.udf['Threshold for % bases >= Q30']
-            self.QC_tresholds['nr_read'] = process.udf['Threshold for # Reads']
+            self.QC_thresholds['perf_ind'] = process.udf['Threshold for % Perfect Index Reads']
+            self.QC_thresholds['%Q30'] = process.udf['Threshold for % bases >= Q30']
+            self.QC_thresholds['nr_read'] = process.udf['Threshold for # Reads']
         except:
             logging.error("Set QC thresholds and try again!")
             sys.exit(-1)
