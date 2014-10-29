@@ -138,7 +138,7 @@ class UndemuxInd():
             self.QC_thresholds['nr_read'] = process.udf['Threshold for # Reads']
         except:
             logging.error("Set QC thresholds and try again!")
-            sys.exit(-1)
+            sys.exit("Set QC thresholds and try again!")
 
 
     def make_demultiplexed_counts_file(self, demuxfile):
