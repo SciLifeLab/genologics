@@ -107,19 +107,19 @@ class UndemuxInd():
             logging.info("Getting % Perfect Index Read from udf")
         except: 
             perf_ind_read = float(sample_info['% Perfect Index Reads'])
-            logging.info("Getting % Perfect Index Read from file")
+            logging.info("Getting % Perfect Index Read from Demultiplex_Stats.htm")
         try: 
             Q30 = float(target_file.udf['% Bases >=Q30'])
             logging.info("Getting % Bases >=Q30 from udf")
         except: 
             Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
-            logging.info("Getting % Bases >=Q30 from file")
+            logging.info("Getting % Bases >=Q30 from Demultiplex_Stats.htm")
         try:
             nr_reads = int(target_file.udf['# Reads'])
             logging.info("Getting # Reads from udf")
         except: 
             nr_reads = int(sample_info['# Reads'].replace(',',''))
-            logging.info("Getting # Reads from file")
+            logging.info("Getting # Reads from Demultiplex_Stats.htm")
 
         self._get_QC_thresholds()
         QC1 = (perf_ind_read >= self.QC_thresholds['perf_ind'])
@@ -216,8 +216,8 @@ class UndemuxInd():
                                                           ' on Lane ', l, ', '])
         if self.un_exp_ind_warn:
             self.abstract.insert(0, "WARNING: High yield of unexpected index:"
-                                            " {0}".format(self.un_exp_ind_warn))
-
+                                  " {0}. Please check the Metrics file!".format(
+                                                          self.un_exp_ind_warn))
 
 def main(lims, pid, epp_logger, demuxfile):
     process = Process(lims,id = pid)
