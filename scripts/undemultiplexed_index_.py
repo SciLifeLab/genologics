@@ -49,6 +49,7 @@ class UndemuxInd():
         self.undemultiplex_stats = None 
         self.QC_thresholds = {}
         self.abstract = []
+        self.un_exp_ind_warn = ''
         self.nr_lane_samps_updat = 0
         self.nr_lane_samps_tot = 0
 
@@ -66,10 +67,9 @@ class UndemuxInd():
             logging.info("Parsed files Demultiplex_Stats.htm and Undemultiplexe"
                                      "d_stats.metrics in {0}".format(file_path))
         except:
-            logging.error("Failed to parse files Demultiplex_Stats.htm and "
-                          "Undemultiplexed_stats.metrics in {0}. Files might "
-                          "be corrupt or not existing".format(file_path))
-            sys.exit(-1)
+            sys.exit("Failed to parse files Demultiplex_Stats.htm and "
+                     "Undemultiplexed_stats.metrics in {0}. Files might "
+                     "be corrupt or not existing".format(file_path))
  
 
     def set_result_file_udfs(self):
@@ -87,11 +87,11 @@ class UndemuxInd():
                     if lane == lane_samp['Lane']:
                         samp = lane_samp['Sample ID']
                         if samp == samp_name:
-                            target_file.qc_flag = self._index_QC(target_file, lane_samp)
+                            target_file.qc_flag = self._QC(target_file, lane_samp)
                             set_field(target_file)
                             self.nr_lane_samps_updat += 1
  
-    def _index_QC(self, target_file, sample_info):
+    def _QC(self, target_file, sample_info):
         """Makes per sample warnings if any of the following holds: 
 
         % Perfect Index Reads < 60
@@ -133,11 +133,10 @@ class UndemuxInd():
 
     def _get_QC_thresholds(self):
         try:
-            self.QC_thresholds['perf_ind'] = process.udf['Threshold for % Perfect Index Reads']
-            self.QC_thresholds['%Q30'] = process.udf['Threshold for % bases >= Q30']
-            self.QC_thresholds['nr_read'] = process.udf['Threshold for # Reads']
+            self.QC_thresholds['perf_ind'] = self.process.udf['Threshold for % Perfect Index Reads']
+            self.QC_thresholds['%Q30'] = self.process.udf['Threshold for % bases >= Q30']
+            self.QC_thresholds['nr_read'] = self.process.udf['Threshold for # Reads']
         except:
-            logging.error("Set QC thresholds and try again!")
             sys.exit("Set QC thresholds and try again!")
 
 
@@ -185,13 +184,15 @@ class UndemuxInd():
                 "of {1} analytes. The QC thresholds are: '% Perfect "
                 "Index Reads' < 60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' "
                 "< 100000. ".format(self.nr_lane_samps_updat, self.nr_lane_samps_tot))
-        print >> sys.stderr, ' '.join(self.abstract)
+        if self.un_exp_ind_warn:
+            sys.exit(self.abstract)
+        else:
+            print >> sys.stderr, ' '.join(self.abstract)
 
     def _check_unexpected_yield(self):
         """Warning if any unexpected index has yield > 0.5M"""
 
         warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
-        warning = ''
         for l, lane_inf in self.undemultiplexed_stats.items():
             counts = lane_inf['undemultiplexed_barcodes']['count']
             sequence = lane_inf['undemultiplexed_barcodes']['sequence']
@@ -209,10 +210,11 @@ class UndemuxInd():
         for l, w in warn.items():
             if w:
                 inds = ', '.join(w)
-                warning = warning + ''.join([inds,' on Lane ', l, ', '])
-        if warning:
+                self.un_exp_ind_warn = self.un_exp_ind_warn + ''.join([inds,
+                                                          ' on Lane ', l, ', '])
+        if self.un_exp_ind_warn:
             self.abstract.append("WARNING: High yield of unexpected index:"
-                                                         " {0}".format(warning))
+                                            " {0}".format(self.un_exp_ind_warn))
 
 
 def main(lims, pid, epp_logger, demuxfile):
