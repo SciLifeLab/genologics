@@ -45,6 +45,7 @@ class UndemuxInd():
     def __init__(self, process):
         self.process = process
         self.flowcell_id = process.all_inputs()[0].container.name
+        self.input_pools = process.all_inputs()
         self.demultiplex_stats = None
         self.undemultiplex_stats = None 
         self.QC_thresholds = {}
@@ -75,8 +76,7 @@ class UndemuxInd():
     def set_result_file_udfs(self):
         """populates the target file qc-flags"""
 
-        input_pools = self.process.all_inputs()
-        for pool in input_pools:
+        for pool in self.input_pools:
             lane = pool.location[1][0] #getting lane number
             outarts_per_lane = self.process.outputs_per_input(
                                           pool.id, ResultFile = True)
@@ -148,14 +148,15 @@ class UndemuxInd():
         keys = ['Project', 'Sample ID', 'Lane', '# Reads', 'Index', 
                                     'Index name', '% of >= Q30 Bases (PF)']
         toCSV = []
-        for lane in range(1,9):
+        for pool in self.input_pools:
+            lane = pool.location[1][0]
             for row in self.demultiplex_stats['Barcode_lane_statistics']:
-                if row['Lane'] == str(lane):
+                if row['Lane'] == lane:
                     row_dict = dict([(x, row[x]) for x in keys if x in row])
                     row_dict['Index name'] = ''
                     toCSV.append(row_dict)
-            if str(lane) in self.undemultiplexed_stats.keys():
-                undet_per_lane = self.undemultiplexed_stats[str(lane)]['undemultiplexed_barcodes']
+            if lane in self.undemultiplexed_stats.keys():
+                undet_per_lane = self.undemultiplexed_stats[lane]['undemultiplexed_barcodes']
                 nr_undet = len(undet_per_lane['count'])
                 for row in range(nr_undet):
                     row_dict = dict([(x, '') for x in keys])
@@ -170,22 +171,21 @@ class UndemuxInd():
             dict_writer.writer.writerow(keys)
             dict_writer.writerows(toCSV)
             f.close
-            self.abstract.append("A Metrics file has been created with "
+            self.abstract.append("INFO: A Metrics file has been created with "
                       "demultiplexed and undemultiplexed counts for debugging.")
         except:
-            self.abstract.append("Could not generate a Metrics file with "
-                                    "demultiplexed and undemultiplexed counts.")
+            self.abstract.append("WARNING: Could not generate a Metrics file "
+                               "with demultiplexed and undemultiplexed counts.")
 
     def logging(self):
         """Collects and prints logging info."""
 
         self._check_unexpected_yield()
-        self.abstract.append("QC-data found and QC-flags uploaded for {0} out "
-                "of {1} analytes. The QC thresholds are: '% Perfect "
-                "Index Reads' < 60%, '% of >= Q30 Bases (PF)' < 80%, '# Reads' "
-                "< 100000. ".format(self.nr_lane_samps_updat, self.nr_lane_samps_tot))
+        self.abstract.append("INFO: QC-data found and QC-flags uploaded for {0}"
+              " out of {1} analytes. Flags are set based on the selected thresh"
+              "olds. ".format(self.nr_lane_samps_updat, self.nr_lane_samps_tot))
         if self.un_exp_ind_warn:
-            sys.exit(self.abstract)
+            sys.exit(' '.join(self.abstract))
         else:
             print >> sys.stderr, ' '.join(self.abstract)
 
@@ -193,7 +193,9 @@ class UndemuxInd():
         """Warning if any unexpected index has yield > 0.5M"""
 
         warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
-        for l, lane_inf in self.undemultiplexed_stats.items():
+        for pool in self.input_pools:
+            lane = pool.location[1][0]
+            lane_inf = self.undemultiplexed_stats[lane]
             counts = lane_inf['undemultiplexed_barcodes']['count']
             sequence = lane_inf['undemultiplexed_barcodes']['sequence']
             index_name = lane_inf['undemultiplexed_barcodes']['index_name']
@@ -213,7 +215,7 @@ class UndemuxInd():
                 self.un_exp_ind_warn = self.un_exp_ind_warn + ''.join([inds,
                                                           ' on Lane ', l, ', '])
         if self.un_exp_ind_warn:
-            self.abstract.append("WARNING: High yield of unexpected index:"
+            self.abstract.insert(0, "WARNING: High yield of unexpected index:"
                                             " {0}".format(self.un_exp_ind_warn))
 
 
