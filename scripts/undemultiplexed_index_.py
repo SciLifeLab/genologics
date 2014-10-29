@@ -121,6 +121,7 @@ class UndemuxInd():
             nr_reads = int(sample_info['# Reads'].replace(',',''))
             logging.info("Getting # Reads from file")
 
+        self._get_QC_thresholds()
         QC1 = (perf_ind_read >= self.QC_thresholds['perf_ind'])
         QC2 = (Q30 >= self.QC_thresholds['%Q30'])
         QC3 = (nr_reads >= self.QC_thresholds['nr_read'])
