@@ -47,6 +47,7 @@ class UndemuxInd():
         self.flowcell_id = process.all_inputs()[0].container.name
         self.demultiplex_stats = None
         self.undemultiplex_stats = None 
+        self.QC_thresholds = {}
         self.abstract = []
         self.nr_lane_samps_updat = 0
         self.nr_lane_samps_tot = 0
@@ -55,13 +56,20 @@ class UndemuxInd():
         """ Files are read from the file msf system. Path hard coded."""
 
         FRMP = FlowcellRunMetricsParser()
-        file_path = ("/srv/mfs/*iseq_data/*{0}/Unaligned/Basecall_Stats_*{0}"
-                                                   "/".format(self.flowcell_id))
-        file_path = glob.glob(file_path)[0]
-        self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(
+        file_path = glob.glob(("/srv/mfs/*iseq_data/*{0}/Unaligned/"
+                            "Basecall_Stats_*{0}/".format(self.flowcell_id)))[0]
+        try:
+            self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(
                                             file_path + 'Demultiplex_Stats.htm')
-        self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
+            self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
                                     file_path + 'Undemultiplexed_stats.metrics')
+            logging.info("Parsed files Demultiplex_Stats.htm and Undemultiplexe"
+                                     "d_stats.metrics in {0}".format(file_path))
+        except:
+            logging.error("Failed to parse files Demultiplex_Stats.htm and "
+                          "Undemultiplexed_stats.metrics in {0}. Files might "
+                          "be corrupt or not existing".format(file_path))
+            sys.exit(-1)
  
 
     def set_result_file_udfs(self):
@@ -96,25 +104,41 @@ class UndemuxInd():
 
         try: 
             perf_ind_read = float(target_file.udf['% Perfect Index Read'])
+            logging.info("Getting % Perfect Index Read from udf")
         except: 
             perf_ind_read = float(sample_info['% Perfect Index Reads'])
+            logging.info("Getting % Perfect Index Read from file")
         try: 
             Q30 = float(target_file.udf['% Bases >=Q30'])
+            logging.info("Getting % Bases >=Q30 from udf")
         except: 
             Q30 = float(sample_info['% of >= Q30 Bases (PF)'])
+            logging.info("Getting % Bases >=Q30 from file")
         try:
             nr_reads = int(target_file.udf['# Reads'])
+            logging.info("Getting # Reads from udf")
         except: 
             nr_reads = int(sample_info['# Reads'].replace(',',''))
+            logging.info("Getting # Reads from file")
 
-        QC1 = (perf_ind_read >= 60)
-        QC2 = (Q30 >= 80)
-        QC3 = (nr_reads >= 100000)
+        QC1 = (perf_ind_read >= self.QC_tresholds['perf_ind'])
+        QC2 = (Q30 >= self.QC_tresholds['%Q30'])
+        QC3 = (nr_reads >= self.QC_tresholds['nr_read'])
 
         if QC1 and QC2 and QC3:
             return 'PASSED'
         else:
             return 'FAILED'
+
+    def _get_QC_tresholds(self):
+        try:
+            self.QC_tresholds['perf_ind'] = process.udf['Threshold for % Perfect Index Reads']
+            self.QC_tresholds['%Q30'] = process.udf['Threshold for % bases >= Q30']
+            self.QC_tresholds['nr_read'] = process.udf['Threshold for # Reads']
+        except:
+            logging.error("Set QC thresholds and try again!")
+            sys.exit(-1)
+
 
     def make_demultiplexed_counts_file(self, demuxfile):
         """Reformats the content of the demultiplex and undemultiplexed files
