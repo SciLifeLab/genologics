@@ -52,7 +52,7 @@ class QualityFilter():
     def get_and_set_yield_and_Q30(self):
         self._format_file()
         input_pools = self.process.all_inputs()
-        self.abstract.append("Yield and Q30 uploaded on")
+        self.abstract.append("Yield and Q30 uploaded to:")
         for pool in input_pools:
             self.nr_samps_updat = []
             self.missing_samps = []
@@ -63,7 +63,7 @@ class QualityFilter():
                 samp_name = target_file.samples[0].name
                 self._set_udfs(samp_name, target_file, lane)
             if self.nr_samps_updat:
-                self.abstract.append("LANE: {0} for {1} samples."
+                self.abstract.append("LANE {0} with {1} samples."
                     "".format(lane, str(len(set(self.nr_samps_updat)))))
             if self.missing_samps:
                 self.abstract.append("The following samples are missing in Quality "
