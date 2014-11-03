@@ -33,6 +33,7 @@ from genologics.epp import set_field
 class QualityFilter():
     def __init__(self, process):
         self.process = process
+        self.flowcell_id = process.all_inputs()[0].container.name
         self.project_name = process.all_outputs()[0].samples[0].project.name
         self.result_files = process.result_files()
         self.source_file = None
@@ -43,8 +44,8 @@ class QualityFilter():
         self.nr_samps_tot = 0
 
     def read_QF_file(self):
-        """ App QC file is read from the file msf system. Path hard coded."""
-        file_path = ("/srv/mfs/QF/{0}.csv".format(self.project_name))
+        """ QF file is read from the file msf system. Path hard coded."""
+        file_path = ("/srv/mfs/QF/{0}/{1}.csv".format(self.project_name, self.flowcell_id))
         of = open(file_path ,'r')
         self.source_file = [row for row in csv.reader(of.read().splitlines())]
         of.close()
