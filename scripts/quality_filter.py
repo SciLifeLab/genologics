@@ -63,8 +63,8 @@ class QualityFilter():
                 samp_name = target_file.samples[0].name
                 self._set_udfs(samp_name, target_file, lane)
             if self.nr_samps_updat:
-                self.abstract.append("LANE: {0} for {0} samples."
-                    "".format(lane, self.nr_samps_updat))
+                self.abstract.append("LANE: {0} for {1} samples."
+                    "".format(lane, len(set(self.nr_samps_updat)))
             if self.missing_samps:
                 self.abstract.append("The following samples are missing in Quality "
                     "Filter file: {0}.".format(', '.join(self.missing_samps)))
