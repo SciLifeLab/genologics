@@ -66,8 +66,8 @@ class QualityFilter():
                 self.abstract.append("LANE: {0} for {1} samples."
                     "".format(lane, str(len(set(self.nr_samps_updat))))
             #if self.missing_samps:
-            self.abstract.append("The following samples are missing in Quality "
-                    "Filter file: {0}.".format(', '.join(self.missing_samps)))
+            #self.abstract.append("The following samples are missing in Quality "
+            #        "Filter file: {0}.".format(', '.join(self.missing_samps)))
         self._logging()
 
     def _format_file(self):
