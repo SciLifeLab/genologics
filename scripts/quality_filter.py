@@ -21,6 +21,7 @@ Written by Maya Brandi
 import os
 import sys
 import logging
+import csv
 
 from argparse import ArgumentParser
 from genologics.lims import Lims
@@ -28,50 +29,85 @@ from genologics.config import BASEURI, USERNAME, PASSWORD
 from genologics.entities import Process
 from genologics.epp import EppLogger
 from genologics.epp import set_field
-from genologics.epp import ReadResultFiles
 
 class QualityFilter():
     def __init__(self, process):
         self.process = process
+        self.flowcell_id = process.all_inputs()[0].container.name
+        self.project_name = process.all_outputs()[0].samples[0].project.name
         self.result_files = process.result_files()
+        self.source_file = None
         self.QF_from_file = {}
         self.missing_samps = []
         self.abstract = []
-        self.nr_samps_updat = 0
-        self.nr_samps_tot = '-'
+        self.abstract_ext = []
+        self.nr_samps_updat = []
+
+    def read_QF_file(self):
+        """ QF file is read from the file msf system. Path hard coded."""
+        file_path = ("/srv/mfs/QF/{0}/{1}.csv".format(self.project_name, self.flowcell_id))
+        of = open(file_path ,'r')
+        self.source_file = [row for row in csv.reader(of.read().splitlines())]
+        of.close()
 
     def get_and_set_yield_and_Q30(self):
-        file_handler = ReadResultFiles(self.process)
-        source_file = file_handler.shared_files['Quality Filter']
-        target_files = dict((r.samples[0].name, r) for r in self.result_files)
-        self.nr_samps_tot = str(len(target_files))
-        self.QF_from_file = file_handler.format_file(source_file, 
-                               name = 'Quality Filter', first_header = 'Sample')
-        for samp_name, target_file in target_files.items():
-            self._set_udfs(samp_name, target_file)
+        self._format_file()
+        input_pools = self.process.all_inputs()
+        for pool in input_pools:
+            self.nr_samps_updat = []
+            self.missing_samps = []
+            lane = pool.location[1][0] #getting lane number
+            outarts_per_lane = self.process.outputs_per_input(
+                                          pool.id, ResultFile = True)
+            for target_file in outarts_per_lane:
+                samp_name = target_file.samples[0].name
+                self._set_udfs(samp_name, target_file, lane)
+            if self.nr_samps_updat:
+                self.abstract_ext.append("LANE {0} with {1} samples."
+                    "".format(lane, str(len(set(self.nr_samps_updat)))))
+            if self.missing_samps:
+                self.abstract_ext.append("The following samples are missing in Quality "
+                    "Filter file: {0}.".format(', '.join(self.missing_samps)))
         self._logging()
 
-    def _set_udfs(self, samp_name, target_file):
-        if samp_name in self.QF_from_file.keys():
-            s_inf = self.QF_from_file[samp_name]
-            target_file.udf['# Reads'] = int(s_inf['# Reads'])
-            target_file.udf['% Bases >=Q30'] = float(s_inf['% Bases >=Q30'])
-            self.nr_samps_updat += 1
-        else:
-            self.missing_samps.append(samp_name)
+    def _format_file(self):
+        keys = self.source_file[0]
+        l_ind = keys.index('Lane')
+        s_ind = keys.index('Sample')
+        q_ind = keys.index('% Bases >=Q30')
+        y_ind = keys.index('# Reads')
+        for line in self.source_file[1:]:
+            lane = line[l_ind]
+            samp = line[s_ind]
+            if not lane in self.QF_from_file.keys():
+                self.QF_from_file[lane] = {}
+            self.QF_from_file[lane][samp] = {'% Bases >=Q30' : line[q_ind],
+                                                   '# Reads' : line[y_ind]}
+  
+    def _set_udfs(self, samp_name, target_file, lane):
+        if lane in self.QF_from_file.keys():
+            if samp_name in self.QF_from_file[lane].keys():
+                s_inf = self.QF_from_file[lane][samp_name]
+                target_file.udf['# Reads'] = int(s_inf['# Reads'])
+                target_file.udf['% Bases >=Q30'] = float(s_inf['% Bases >=Q30'])
+                self.nr_samps_updat.append(samp_name)
+            else:
+                self.missing_samps.append(samp_name)
         set_field(target_file)
 
     def _logging(self):
-        self.abstract.append("Yield and Q30 uploaded for {0} out of {1} samples."
-                              "".format(self.nr_samps_updat, self.nr_samps_tot))
-        if self.missing_samps:
-            self.abstract.append("The following samples are missing in Quality "
-            "Filter file: {0}.".format(', '.join(self.missing_samps)))
-        print >> sys.stderr, ' '.join(self.abstract)
+        if self.abstract_ext:
+            self.abstract.append("Yield and Q30 uploaded to")
+            self.abstract.extend(self.abstract_ext)
+            print >> sys.stderr, ' '.join(self.abstract)
+        else:
+            sys.exit("Yield and Q30 not found in QF file for any of the avalible lanes.")
+
 
 def main(lims, pid, epp_logger):
     process = Process(lims,id = pid)
     QF = QualityFilter(process)
+    QF.read_QF_file()
     QF.get_and_set_yield_and_Q30()
     
 
