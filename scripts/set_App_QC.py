@@ -1,30 +1,13 @@
 #!/usr/bin/env python
-DESC = """This EPP script reads demultiplex end undemultiplexed yields from file
-system and then does the following
-    
-1)  Sets the output artifact qc-flaggs based on the tresholds: 
-        % Perfect Index Reads < 60
-        %Q30 < 80
-        expected index < 0.1 M
-
-2)  Warns if anny unexpected index has yield > 0.5M
-
-3)  Loads a result file with demultiplex end undemultiplexed yields. This should
-    be checked if warnings are given.
-
-Reads from:
-    --files--
-    Demultiplex_Stats.htm                           in mfs file system
-    Undemultiplexed_stats.metrics                   in mfs file system
-
-Writes to:
-    --Lims fields--
-    "qc-flag"                                       per artifact (result file)
+DESC = """This EPP script reads Application QC files from file
+system and sets the qc values for each sample. Allso a a easy to read App QC 
+file is generated with more information about the application specific qc that 
+was done. The file is suposed to be a help file in case of failed QC -flaggs.
 
 Logging:
     The script outputs a regular log file with regular execution information.
 
-Written by Maya Brandi 
+Written by Maya Brandi (14-10-14)
 """
 
 import os
@@ -33,6 +16,7 @@ import logging
 import glob
 import csv
 import json
+
 from argparse import ArgumentParser
 from genologics.lims import Lims
 from genologics.config import BASEURI, USERNAME, PASSWORD
@@ -43,15 +27,13 @@ from genologics.epp import set_field
 class AppQC():
     def __init__(self, process):
         self.app_QC = {}
-        self.project_name = process.all_outputs()[0].samples[0].project.name # hacky but no better way found
+        self.project_name = process.all_outputs()[0].samples[0].project.name
         self.target_files = dict((r.samples[0].name, r) for r in process.all_outputs())
         self.missing_samps = []
         self.nr_samps_updat = 0
         self.abstract = []
-
         self.process = process
         self.nr_samps_tot = str(len(self.target_files))
- 
         self.QF_from_file = {}
 
     def get_app_QC_file(self):
@@ -80,7 +62,6 @@ class AppQC():
             d = info['automated_qc']
             d['sample'] = samp
             list2csv.append(d)
-
         app_qc_file = app_qc_file + '.csv'
         test_file = open(app_qc_file,'wb')
         dict_writer = csv.DictWriter(test_file, keys, dialect = 'excel')
@@ -91,12 +72,12 @@ class AppQC():
     def logging(self):
         """Collects and prints logging info."""
         self.abstract.append("qc-flaggs uploaded for {0} out of {1} samples."
-                            "See App_QC_file for details.".format(
-                                       self.nr_samps_updat, self.nr_samps_tot))
+                                        "See App_QC_file for details.".format(
+                                        self.nr_samps_updat, self.nr_samps_tot))
         if self.missing_samps:
             self.abstract.append("The following samples are missing in "
-                                          "App_QC_file: {0}.".format(
-                                                 ', '.join(self.missing_samps)))
+                                                    "App_QC_file: {0}.".format(
+                                                ', '.join(self.missing_samps)))
         print >> sys.stderr, ' '.join(self.abstract)
 
 def main(lims, pid, epp_logger, App_QC_file):

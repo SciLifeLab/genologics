@@ -2,10 +2,10 @@
 DESC = """This EPP script reads demultiplex end undemultiplexed yields from file
 system and then does the following
     
-1)  Sets the output artifact qc-flaggs based on the thresholds: 
-        % Perfect Index Reads < 60
-        %Q30 < 80
-        expected index < 0.1 M
+1)  Sets the output artifact qc-flaggs based on the threshold-udfs if the process: 
+        % Perfect Index Reads < 60 (default)
+        %Q30 < 80 (default)
+        expected index < 0.1 M (default)
 
 2)  Warns if anny unexpected index has yield > 0.5M
 
@@ -56,17 +56,16 @@ class UndemuxInd():
 
     def get_demultiplex_files(self):
         """ Files are read from the file msf system. Path hard coded."""
-
         FRMP = FlowcellRunMetricsParser()
         file_path = glob.glob(("/srv/mfs/*iseq_data/*{0}/Unaligned/"
                             "Basecall_Stats_*{0}/".format(self.flowcell_id)))[0]
         try:
             self.demultiplex_stats = FRMP.parse_demultiplex_stats_htm(
-                                            file_path + 'Demultiplex_Stats.htm')
+                                        file_path + 'Demultiplex_Stats.htm')
             self.undemultiplexed_stats = FRMP.parse_undemultiplexed_barcode_metrics(
-                                    file_path + 'Undemultiplexed_stats.metrics')
+                                        file_path + 'Undemultiplexed_stats.metrics')
             logging.info("Parsed files Demultiplex_Stats.htm and Undemultiplexe"
-                                     "d_stats.metrics in {0}".format(file_path))
+                                        "d_stats.metrics in {0}".format(file_path))
         except:
             sys.exit("Failed to parse files Demultiplex_Stats.htm and "
                      "Undemultiplexed_stats.metrics in {0}. Files might "
@@ -132,6 +131,7 @@ class UndemuxInd():
             return 'FAILED'
 
     def _get_QC_thresholds(self):
+        """Fetching QC_thresholds from process udfs"""
         try:
             self.QC_thresholds['perf_ind'] = self.process.udf['Threshold for % Perfect Index Reads']
             self.QC_thresholds['%Q30'] = self.process.udf['Threshold for % bases >= Q30']
@@ -179,7 +179,6 @@ class UndemuxInd():
 
     def logging(self):
         """Collects and prints logging info."""
-
         self._check_unexpected_yield()
         self.abstract.append("INFO: QC-data found and QC-flags uploaded for {0}"
               " out of {1} analytes. Flags are set based on the selected thresh"
@@ -191,7 +190,6 @@ class UndemuxInd():
 
     def _check_unexpected_yield(self):
         """Warning if any unexpected index has yield > 0.5M"""
-
         warn = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[]}
         for pool in self.input_pools:
             lane = pool.location[1][0]
