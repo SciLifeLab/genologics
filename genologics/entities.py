@@ -10,6 +10,7 @@ import re
 import urlparse
 import datetime
 import time
+from collections import MutableSet
 from xml.etree import ElementTree
 import logging
 
@@ -688,17 +689,61 @@ class LocationDescriptor(TagDescriptor):
         uri = node.find('container').attrib['uri']
         return Container(instance.lims, uri=uri), node.find('value').text
 
-class ReagentLabelList(BaseDescriptor):
-    """An instance attribute yielding a list of reagent labels"""
+
+class ReagentLabelSet(MutableSet):
+    """Holds infomation about reagent labels. Acts like a set, but
+    also updates the underlying XML. It thus supports adding and deleting
+    reagent labels."""
+
+    def __init__(self, root):
+        self.root = root
+        self.value = set()
+        for node in self.root.findall('reagent-label'):
+            try:
+                self.value.add(node.attrib['name'])
+            except KeyError:
+                pass
+
+    def __contains__(self, i): return i in self.value
+
+    def __iter__(self): return self.value.__iter__()
+
+    def __len__(self): return len(self.value)
+
+    def discard(self, name):
+        remove_node = None
+        for node in self.root.findall('reagent-label'):
+            try:
+                if node.attrib['name'] == name:
+                   remove_node = node
+                   break
+            except (AttributeError, KeyError):
+                pass
+
+        self.root.remove(node)
+        self.value.remove(name)
+
+    def add(self, name):
+        self.value.add(name)
+        ElementTree.SubElement(self.root, 'reagent-label', {'name': name})
+
+    def __str__(self):
+        return str(self.value)
+
+    def __getitem__(self, index):
+        """Emulate list-like indexing to support code written when this was 
+        a list."""
+        return list(self.value)[index]
+
+
+class ReagentLabelSetDescriptor(BaseDescriptor):
+    """An instance attribute yielding a list of reagent labels.
+
+    Allows read-write access."""
     def __get__(self, instance, cls):
-	instance.get()
-	self.value = []
-	for node in instance.root.findall('reagent-label'):
-	    try:
-	    	self.value.append(node.attrib['name']) 
-	    except:
-		pass
-	return self.value
+        instance.get()
+        return ReagentLabelSet(instance.root)
+
 
 class InputOutputMapList(BaseDescriptor):
     """An instance attribute yielding a list of tuples (input, output)
@@ -827,9 +872,6 @@ class Researcher(Entity):
     def name(self):
         return u"%s %s" % (self.first_name, self.last_name)
 
-class Reagent_label(Entity):
-    """Reagent label element"""
-    reagent_label = StringDescriptor('reagent-label')
 
 class Note(Entity):
     "Note attached to a project or a sample."
@@ -1055,7 +1097,7 @@ class Artifact(Entity):
     samples        = EntityListDescriptor('sample', Sample)
     udf            = UdfDictionaryDescriptor()
     files          = EntityListDescriptor(nsmap('file:file'), File)
-    reagent_labels = ReagentLabelList()
+    reagent_labels = ReagentLabelSetDescriptor()
     # artifact_flags XXX
     # artifact_groups XXX
 
@@ -1183,18 +1225,19 @@ class ReagentType(Entity):
     _URI="reagenttypes"
     _TAG="reagent-type"
 
+    name    =StringAttributeDescriptor('name')
     category=StringDescriptor('reagent-category')
 
-    def __init__(self, lims, uri=None, id=None):
-        super(ReagentType, self).__init__(lims,uri,id)
-        assert self.uri is not None
-        self.root=lims.get(self.uri)
-        self.sequence=None
-        for t in self.root.findall('special-type'):
+    @property
+    def sequence(self):
+        self.get()
+        for t in self.root.findall("special-type"):
             if t.attrib.get("name") == "Index":
                 for child in t.findall("attribute"):
                     if child.attrib.get("name") == "Sequence":
-                        self.sequence=child.attrib.get("value")
+                        return child.attrib.get("value")
+        return None
+
 
 Sample.artifact          = EntityDescriptor('artifact', Artifact)
 StepActions.step         = EntityDescriptor('step', Step)
