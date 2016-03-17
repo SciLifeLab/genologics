@@ -18,26 +18,35 @@ import requests
 
 from .entities import *
 
-TIMEOUT=16
+TIMEOUT = 16
+
 
 class Lims(object):
+
     "LIMS interface through which all entity instances are retrieved."
 
     VERSION = 'v2'
 
-    def __init__(self, baseuri, username, password, version = VERSION):
+    def __init__(self, baseuri, username, password, verify=True,
+                 version=VERSION):
         """baseuri: Base URI for the GenoLogics server, excluding
                     the 'api' or version parts!
                     For example: https://genologics.scilifelab.se:8443/
         username: The account name of the user to login as.
         password: The password for the user account to login as.
-        version: The optional LIMS API version, by default 'v2' 
+        verify: Whether to verify SSL connections
+        version: The optional LIMS API version, by default 'v2'
         """
         self.baseuri = baseuri.rstrip('/') + '/'
         self.username = username
         self.password = password
         self.VERSION = version
+        self.verify = verify
         self.cache = dict()
+
+        self.req_args = {'auth': (self.username, self.password),
+                         'verify': self.verify, 'timeout': TIMEOUT}
+
         # For optimization purposes, enables requests to persist connections
         self.request_session = requests.Session()
         #The connection pool has a default size of 10
@@ -56,9 +65,8 @@ class Lims(object):
         "GET data from the URI. Return the response XML as an ElementTree."
         try:
             r = self.request_session.get(uri, params=params,
-                         auth=(self.username, self.password),
-                         headers=dict(accept='application/xml'),
-                         timeout=TIMEOUT)
+                                         headers=dict(accept='application/xml'),
+                                         **self.req_args)
         except requests.exceptions.Timeout as e:
             raise type(e)("{0}, Error trying to reach {1}".format(e.message, uri))
 
@@ -74,7 +82,7 @@ class Lims(object):
         else:
             raise ValueError("id or uri required")
         url = urlparse.urljoin(self.baseuri, '/'.join(segments))
-        r=self.request_session.get(url, auth=(self.username, self.password), timeout=TIMEOUT)
+        r = self.request_session.get(url, **self.req_args)
         #TODO add a returncode check here 
         return r.text
 
@@ -84,9 +92,9 @@ class Lims(object):
         Return the response XML as an ElementTree.
         """
         r = requests.put(uri, data=data, params=params,
-                         auth=(self.username, self.password),
-                         headers={'content-type':'application/xml',
-                                  'accept': 'application/xml'})
+                         headers={'content-type': 'application/xml',
+                                  'accept': 'application/xml'},
+                         **self.req_args)
         return self.parse_response(r)
 
     def post(self, uri, data, params=dict()):
@@ -94,9 +102,9 @@ class Lims(object):
         Return the response XML as an ElementTree.
         """
         r = requests.post(uri, data=data, params=params,
-                          auth=(self.username, self.password),
                           headers={'content-type': 'application/xml',
-                                   'accept': 'application/xml'})
+                                   'accept': 'application/xml'},
+                          **self.req_args)
         return self.parse_response(r, accept_status_codes = [200, 201, 202])
 
     def check_version(self):
@@ -104,7 +112,7 @@ class Lims(object):
         does not match any of the versions given for the API.
         """
         uri = urlparse.urljoin(self.baseuri, 'api')
-        r = requests.get(uri, auth=(self.username, self.password))
+        r = requests.get(uri, **self.req_args)
         root = self.parse_response(r)
         tag = nsmap('ver:versions')
         assert tag == root.tag
