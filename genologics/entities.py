@@ -293,11 +293,11 @@ class StringDescriptor(TagDescriptor):
             return node.text
 
     def __set__(self, instance, value):
+        instance.get()
         node = self.get_node(instance)
         if node is None:
-            raise AttributeError("no element '%s' to set" % self.tag)
-        else:
-            node.text = value
+            node = ElementTree.SubElement(instance.root, self.tag)
+        node.text = value
 
     def get_node(self, instance):
         if self.tag:
