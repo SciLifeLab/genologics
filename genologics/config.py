@@ -2,7 +2,10 @@ import os
 import sys
 import warnings
 
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 
 '''
 Usage:
