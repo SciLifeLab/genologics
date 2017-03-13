@@ -21,12 +21,41 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def get_sub_node(node, subnode_name):
+    return next(get_sub_nodes(node, subnode_name), None)
+
+
+def get_sub_nodes(node, subnode_name):
+    for n in node:
+        if n.tag == subnode_name:
+            yield n
+
 
 class BaseDescriptor(object):
     "Abstract base descriptor for an instance attribute."
 
     def __get__(self, instance, cls):
         raise NotImplementedError
+
+
+class Nestable():
+    "Abstract base descriptor allowing the descriptor to be nested."
+
+    def __init__(self, nesting):
+        if nesting:
+            self.rootkeys = nesting
+        else:
+            self.rootkeys = []
+
+    def rootnode(self, instance):
+        _rootnode = instance.root
+        for rootkey in self.rootkeys:
+            childnode = get_sub_node(_rootnode, rootkey)
+            if childnode is None:
+                childnode = ElementTree.Element(rootkey)
+                _rootnode.append(childnode)
+            _rootnode = childnode
+        return _rootnode
 
 
 class TagDescriptor(BaseDescriptor):
@@ -39,7 +68,7 @@ class TagDescriptor(BaseDescriptor):
 
     def get_node(self, instance):
         if self.tag:
-            return instance.root.find(self.tag)
+            return get_sub_node(instance.root, self.tag)
         else:
             return instance.root
 
@@ -81,28 +110,36 @@ class StringAttributeDescriptor(TagDescriptor):
         instance.root.attrib[self.tag] = value
 
 
-class StringListDescriptor(TagDescriptor):
+class StringListDescriptor(Nestable, TagDescriptor):
     """An instance attribute containing a list of strings
     represented by multiple XML elements.
     """
+    def __init__(self, tag, nesting=None):
+        Nestable.__init__(self, nesting)
+        TagDescriptor.__init__(self, tag)
 
     def __get__(self, instance, cls):
         instance.get()
         result = []
-        for node in instance.root.findall(self.tag):
-            result.append(node.text)
+        for node in self.rootnode(instance):
+            if node.tag == self.tag:
+                result.append(node.text)
         return result
 
 
-class StringDictionaryDescriptor(TagDescriptor):
+class StringDictionaryDescriptor(Nestable, TagDescriptor):
     """An instance attribute containing a dictionary of string key/values
     represented by a hierarchical XML element.
     """
 
+    def __init__(self, tag, nesting=None):
+        Nestable.__init__(self, nesting)
+        TagDescriptor.__init__(self, tag)
+
     def __get__(self, instance, cls):
         instance.get()
         result = dict()
-        node = instance.root.find(self.tag)
+        node = get_sub_node(self.rootnode(instance), self.tag)
         if node is not None:
             for node2 in node.getchildren():
                 result[node2.tag] = node2.text
@@ -144,7 +181,7 @@ class BooleanDescriptor(StringDescriptor):
         super(BooleanDescriptor, self).__set__(instance, str(value).lower())
 
 
-class UdfDictionary(object):
+class UdfDictionary(Nestable):
     "Dictionary-like container of UDFs, optionally within a UDT."
 
     def _is_string(self, value):
@@ -153,22 +190,13 @@ class UdfDictionary(object):
         except:
             return isinstance(value, str)
 
-    def __init__(self, instance, *args, **kwargs):
+    def __init__(self, instance, nesting=None, **kwargs):
+        Nestable.__init__(self, nesting)
         self.instance = instance
         self._udt = kwargs.pop('udt', False)
-        self.rootkeys = args
-        self._rootnode = None
         self._update_elems()
         self._prepare_lookup()
         self.location = 0
-
-    @property
-    def rootnode(self):
-        if not self._rootnode:
-            self._rootnode = self.instance.root
-            for rootkey in self.rootkeys:
-                self._rootnode = self._rootnode.find(rootkey)
-        return self._rootnode
 
     def get_udt(self):
         if self._udt == True:
@@ -181,7 +209,7 @@ class UdfDictionary(object):
         if not self._udt:
             raise AttributeError('cannot set name for a UDF dictionary')
         self._udt = name
-        elem = self.rootnode.find(nsmap('udf:type'))
+        elem = self.rootnode(self.instance).find(nsmap('udf:type'))
         assert elem is not None
         elem.set('name', name)
 
@@ -190,13 +218,13 @@ class UdfDictionary(object):
     def _update_elems(self):
         self._elems = []
         if self._udt:
-            elem = self.rootnode.find(nsmap('udf:type'))
+            elem = self.rootnode(self.instance).find(nsmap('udf:type'))
             if elem is not None:
                 self._udt = elem.attrib['name']
                 self._elems = elem.findall(nsmap('udf:field'))
         else:
             tag = nsmap('udf:field')
-            for elem in self.rootnode.getchildren():
+            for elem in list(self.rootnode(self.instance)):
                 if elem.tag == tag:
                     self._elems.append(elem)
 
@@ -284,9 +312,9 @@ class UdfDictionary(object):
                 raise NotImplementedError("Cannot handle value of type '%s'"
                                           " for UDF" % type(value))
             if self._udt:
-                root = self.rootnode.find(nsmap('udf:type'))
+                root = self.rootnode(self.instance).find(nsmap('udf:type'))
             else:
-                root = self.rootnode
+                root = self.rootnode(self.instance)
             elem = ElementTree.SubElement(root,
                                           nsmap('udf:field'),
                                           type=vtype,
@@ -305,7 +333,7 @@ class UdfDictionary(object):
         del self._lookup[key]
         for node in self._elems:
             if node.attrib['name'] == key:
-                self.rootnode.remove(node)
+                self.rootnode(self.instance).remove(node)
                 break
 
     def items(self):
@@ -313,7 +341,7 @@ class UdfDictionary(object):
 
     def clear(self):
         for elem in self._elems:
-            self.rootnode.remove(elem)
+            self.rootnode(self.instance).remove(elem)
         self._update_elems()
 
     def __iter__(self):
@@ -337,18 +365,18 @@ class UdfDictionaryDescriptor(BaseDescriptor):
     """
     _UDT = False
 
-    def __init__(self, *args):
+    def __init__(self, nesting=None):
         super(BaseDescriptor, self).__init__()
-        self.rootkeys = args
+        self.nesting = nesting
 
     def __get__(self, instance, cls):
         instance.get()
-        self.value = UdfDictionary(instance, *self.rootkeys, udt=self._UDT)
+        self.value = UdfDictionary(instance, nesting=self.nesting, udt=self._UDT)
         return self.value
 
     def __set__(self, instance, dict_value):
         instance.get()
-        udf_dict = UdfDictionary(instance, *self.rootkeys, udt=self._UDT)
+        udf_dict = UdfDictionary(instance, nesting=self.nesting, udt=self._UDT)
         udf_dict.clear()
         for k in dict_value:
             udf_dict[k] = dict_value[k]
@@ -415,78 +443,42 @@ class EntityDescriptor(TagDescriptor):
         node.attrib['uri'] = value.uri
 
 
-class EntityListDescriptor(EntityDescriptor):
+class EntityListDescriptor(Nestable, EntityDescriptor):
     """An instance attribute yielding a list of entity instances
     represented by multiple XML elements.
     """
 
+    def __init__(self, tag, klass, nesting=None):
+        Nestable.__init__(self, nesting)
+        EntityDescriptor.__init__(self, tag, klass)
+
     def __get__(self, instance, cls):
         instance.get()
         result = []
-        for node in instance.root.findall(self.tag):
+        for node in get_sub_nodes(self.rootnode(instance), self.tag):
             result.append(self.klass(instance.lims, uri=node.attrib['uri']))
-
         return result
 
+    # TODO: create __set__ for EntityListDescriptor
 
-class NestedAttributeListDescriptor(StringAttributeDescriptor):
+
+
+class AttributeListDescriptor(Nestable, StringAttributeDescriptor):
     """An instance yielding a list of dictionnaries of attributes
        for a nested xml list of XML elements"""
 
-    def __init__(self, tag, *args):
-        super(StringAttributeDescriptor, self).__init__(tag)
-        self.tag = tag
-        self.rootkeys = args
+    def __init__(self, tag, nesting=None):
+        Nestable.__init__(self, nesting)
+        StringAttributeDescriptor.__init__(self, tag)
 
     def __get__(self, instance, cls):
         instance.get()
         result = []
-        rootnode = instance.root
-        for rootkey in self.rootkeys:
-            rootnode = rootnode.find(rootkey)
-        for node in rootnode.findall(self.tag):
+        for node in self.rootnode(instance).findall(self.tag):
             result.append(node.attrib)
         return result
 
-
-class NestedStringListDescriptor(StringListDescriptor):
-    """An instance yielding a list of strings
-        for a nested list of xml elements"""
-
-    def __init__(self, tag, *args):
-        super(StringListDescriptor, self).__init__(tag)
-        self.tag = tag
-        self.rootkeys = args
-
-    def __get__(self, instance, cls):
-        instance.get()
-        result = []
-        rootnode = instance.root
-        for rootkey in self.rootkeys:
-            rootnode = rootnode.find(rootkey)
-        for node in rootnode.findall(self.tag):
-            result.append(node.text)
-        return result
-
-
-class NestedEntityListDescriptor(EntityListDescriptor):
-    """same as EntityListDescriptor, but works on nested elements"""
-
-    def __init__(self, tag, klass, *args):
-        super(EntityListDescriptor, self).__init__(tag, klass)
-        self.klass = klass
-        self.tag = tag
-        self.rootkeys = args
-
-    def __get__(self, instance, cls):
-        instance.get()
-        result = []
-        rootnode = instance.root
-        for rootkey in self.rootkeys:
-            rootnode = rootnode.find(rootkey)
-        for node in rootnode.findall(self.tag):
-            result.append(self.klass(instance.lims, uri=node.attrib['uri']))
-        return result
+    # TODO: create __set__ for AttributeListDescriptor
 
 
 class DimensionDescriptor(TagDescriptor):
@@ -529,27 +521,24 @@ class ReagentLabelList(BaseDescriptor):
         return self.value
 
 
-class InputOutputMapList(BaseDescriptor):
+class InputOutputMapList(Nestable, BaseDescriptor):
     """An instance attribute yielding a list of tuples (input, output)
     where each item is a dictionary, representing the input/output
     maps of a Process instance.
     """
 
-    def __init__(self, *args):
-        super(BaseDescriptor, self).__init__()
-        self.rootkeys = args
+    def __init__(self, nesting=None):
+        Nestable.__init__(self, nesting)
 
     def __get__(self, instance, cls):
         instance.get()
-        self.value = []
-        rootnode = instance.root
-        for rootkey in self.rootkeys:
-            rootnode = rootnode.find(rootkey)
-        for node in rootnode.findall('input-output-map'):
-            input = self.get_dict(instance.lims, node.find('input'))
-            output = self.get_dict(instance.lims, node.find('output'))
-            self.value.append((input, output))
-        return self.value
+        value = []
+
+        for node in get_sub_nodes(self.rootnode(instance), 'input-output-map') :
+            input = self.get_dict(instance.lims, get_sub_node(node, 'input'))
+            output = self.get_dict(instance.lims, get_sub_node(node, 'output'))
+            value.append((input, output))
+        return value
 
     def get_dict(self, lims, node):
         from genologics.entities import Artifact, Process
@@ -565,7 +554,7 @@ class InputOutputMapList(BaseDescriptor):
                     result[uri] = Artifact(lims, uri=node.attrib[uri])
                 except KeyError:
                     pass
-        node = node.find('parent-process')
+        node = get_sub_node(node, 'parent-process')
         if node is not None:
             result['parent-process'] = Process(lims, node.attrib['uri'])
         return result

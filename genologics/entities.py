@@ -10,8 +10,8 @@ from genologics.constants import nsmap
 from genologics.descriptors import StringDescriptor, StringDictionaryDescriptor, UdfDictionaryDescriptor, \
     UdtDictionaryDescriptor, ExternalidListDescriptor, EntityDescriptor, BooleanDescriptor, EntityListDescriptor, \
     StringAttributeDescriptor, StringListDescriptor, DimensionDescriptor, IntegerDescriptor, \
-    PlacementDictionaryDescriptor, InputOutputMapList, LocationDescriptor, ReagentLabelList, NestedEntityListDescriptor, \
-    NestedStringListDescriptor, NestedAttributeListDescriptor, IntegerAttributeDescriptor
+    PlacementDictionaryDescriptor, InputOutputMapList, LocationDescriptor, ReagentLabelList, IntegerAttributeDescriptor, \
+    AttributeListDescriptor
 
 try:
     from urllib.parse import urlsplit, urlparse, parse_qs, urlunparse
@@ -841,7 +841,7 @@ class ReagentLot(Entity):
 
 
 class StepReagentLots(Entity):
-    reagent_lots = NestedEntityListDescriptor('reagent-lot', ReagentLot, 'reagent-lots')
+    reagent_lots = EntityListDescriptor('reagent-lot', ReagentLot, nesting=['reagent-lots'])
 
 class StepDetails(Entity):
     """Detail associated with a step"""
@@ -883,12 +883,12 @@ class ProtocolStep(Entity):
 
     name                = StringAttributeDescriptor("name")
     type                = EntityDescriptor('type', Processtype)
-    permittedcontainers = NestedStringListDescriptor('container-type', 'container-types')
-    queue_fields        = NestedAttributeListDescriptor('queue-field', 'queue-fields')
-    step_fields         = NestedAttributeListDescriptor('step-field', 'step-fields')
-    sample_fields       = NestedAttributeListDescriptor('sample-field', 'sample-fields')
-    step_properties     = NestedAttributeListDescriptor('step_property', 'step_properties')
-    epp_triggers        = NestedAttributeListDescriptor('epp_trigger', 'epp_triggers')
+    permittedcontainers = StringListDescriptor('container-type', nesting=['container-types'])
+    queue_fields        = AttributeListDescriptor('queue-field', nesting=['queue-fields'])
+    step_fields         = AttributeListDescriptor('step-field', nesting=['step-fields'])
+    sample_fields       = AttributeListDescriptor('sample-field', nesting=['sample-fields'])
+    step_properties     = AttributeListDescriptor('step_property', nesting=['step_properties'])
+    epp_triggers        = AttributeListDescriptor('epp_trigger', nesting=['epp_triggers'])
 
 
 class Protocol(Entity):
@@ -896,8 +896,8 @@ class Protocol(Entity):
     _URI = 'configuration/protocols'
     _TAG = 'protocol'
 
-    steps      = NestedEntityListDescriptor('step', ProtocolStep, 'steps')
-    properties = NestedAttributeListDescriptor('protocol-property', 'protocol-properties')
+    steps      = EntityListDescriptor('step', ProtocolStep, nesting=['steps'])
+    properties = AttributeListDescriptor('protocol-property', nesting=['protocol-properties'])
 
 
 class Stage(Entity):
@@ -915,8 +915,8 @@ class Workflow(Entity):
 
     name      = StringAttributeDescriptor("name")
     status    = StringAttributeDescriptor("status")
-    protocols = NestedEntityListDescriptor('protocol', Protocol, 'protocols')
-    stages    = NestedEntityListDescriptor('stage', Stage, 'stages')
+    protocols = EntityListDescriptor('protocol', Protocol, nesting=['protocols'])
+    stages    = EntityListDescriptor('stage', Stage, nesting=['stages'])
 
 
 class ReagentType(Entity):
@@ -944,11 +944,11 @@ class Queue(Entity):
     _TAG= "queue"
     _PREFIX = "que"
 
-    artifacts=NestedEntityListDescriptor("artifact", Artifact, "artifacts")
+    artifacts = EntityListDescriptor("artifact", Artifact, nesting=["artifacts"])
 
 Sample.artifact          = EntityDescriptor('artifact', Artifact)
 StepActions.step         = EntityDescriptor('step', Step)
 Stage.workflow           = EntityDescriptor('workflow', Workflow)
-Artifact.workflow_stages = NestedEntityListDescriptor('workflow-stage', Stage, 'workflow-stages')
+Artifact.workflow_stages = EntityListDescriptor('workflow-stage', Stage, nesting=['workflow-stages'])
 Step.configuration       = EntityDescriptor('configuration', ProtocolStep)
 
