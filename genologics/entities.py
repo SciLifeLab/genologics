@@ -21,6 +21,8 @@ except ImportError:
 from xml.etree import ElementTree
 
 import logging
+import os
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -270,10 +272,14 @@ class Entity(object):
 
     @property
     def uri(self):
-        try:
+        if self._uri:
             return self._uri
-        except:
-            return self._URI
+        elif self.root is not None:
+            if 'uri' in self.root.attrib:
+                self._uri=self.root.attrib['uri']
+                return self._uri
+        return self._URI
+
 
     @property
     def id(self):
@@ -688,6 +694,47 @@ class Artifact(Entity):
         return result
 
     workflow_stages_and_statuses = property(_get_workflow_stages_and_statuses)
+
+    def attach_file(self, local_filename):
+        #This method will attach a file to the current artifact. Note that this fails for completed / in review steps
+        storage_uri = "{}/api/v2/glsstorage".format(self.lims.baseuri)
+        files_uri = "{}/api/v2/files".format(self.lims.baseuri)
+        headers = {'Content-Type': 'application/xml'}
+
+        #I would rather have a path and a name
+        local_filepath = os.path.abspath(local_filename)
+        if local_filepath == local_filename:
+            local_filename = os.path.basename(local_filepath)
+
+        #delete the file if it has the exact same origin
+        if self.files:
+            for one_file in self.files:
+                if one_file.original_location == local_filepath:
+                    r = requests.delete(one_file.uri, auth=(self.lims.username, self.lims.password))
+
+        #create a dummy File holder without uri or id
+        fileholder = File(self.lims, _create_new=True)
+        etholder = ElementTree.Element("file:file")
+        etholder.set('xmlns:file','http://genologics.com/ri/file')
+        setholder = ElementTree.SubElement(etholder, "attached-to")
+        setholder.text = self.uri
+        setholder2 = ElementTree.SubElement(etholder, "original-location")
+        setholder2.text = local_filepath
+        xml = ElementTree.tostring(etholder, encoding='utf8', method='xml')
+        #post to glsstorage to require space
+        r = requests.post(storage_uri, data=xml, headers=headers, auth=(self.lims.username, self.lims.password))
+        xml = r.text
+        #post to files to request an id
+        r = requests.post(files_uri, data=xml, headers=headers, auth=(self.lims.username, self.lims.password))
+        fileholder.root = ElementTree.fromstring(r.text)
+        upload_uri = "{0}/upload".format(fileholder.uri)
+        file_content = open(local_filepath).read()
+        files = {'file': (local_filename, file_content, 'text/plain') }
+        #upload the file
+        r = requests.post(upload_uri, files=files, auth=(self.lims.username, self.lims.password))
+        r.raise_for_status()
+
+
 
 
 class StepPlacements(Entity):
