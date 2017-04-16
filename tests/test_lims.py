@@ -78,7 +78,6 @@ class TestLims(TestCase):
             self.assertRaises(HTTPError, lims.put, uri=uri, data=self.sample_xml)
             assert mocked_put.call_count == 1
 
-
     def test_post(self):
         lims = Lims(self.url, username=self.username, password=self.password)
         uri = '{url}/api/v2/samples'.format(url=self.url)

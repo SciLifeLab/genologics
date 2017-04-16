@@ -1,4 +1,3 @@
-import operator
 from sys import version_info
 from unittest import TestCase
 from xml.etree import ElementTree
@@ -233,7 +232,7 @@ class TestStepPlacements(TestEntities):
         with patch('requests.Session.get',
                    return_value=Mock(content=self.original_step_placements_xml, status_code=200)):
             new_placements = [[a1, (c1, '3:1')], [a2, (c1, '4:1')]]
-            s.set_placement_list(new_placements)
+            s.placement_list = new_placements
             assert elements_equal(s.root, ElementTree.fromstring(self.modloc_step_placements_xml))
 
     def test_set_placements_list_fail(self):
@@ -245,7 +244,7 @@ class TestStepPlacements(TestEntities):
         with patch('requests.Session.get',
                    return_value=Mock(content=self.original_step_placements_xml, status_code=200)):
             new_placements = [[a1, (c2, '1:1')], [a2, (c2, '1:1')]]
-            s.set_placement_list(new_placements)
+            s.placement_list = new_placements
             assert elements_equal(s.root, ElementTree.fromstring(self.modcont_step_placements_xml))
 
 

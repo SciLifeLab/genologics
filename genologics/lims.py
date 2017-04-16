@@ -83,7 +83,7 @@ class Lims(object):
                                          auth=(self.username, self.password),
                                          headers=dict(accept='application/xml'),
                                          timeout=TIMEOUT)
-        except requests.exceptions.Timeout as e:
+        except requests.exceptions.ConnectionError as e:
             raise type(e)("{0}, Error trying to reach {1}".format(e.message, uri))
 
         else:
