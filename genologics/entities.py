@@ -238,7 +238,7 @@ class Entity(object):
     _URI = None
     _PREFIX = None
 
-    def __new__(cls, lims, uri=None, id=None, _create_new=False):
+    def __new__(cls, lims, uri=None, id=None, _create_new=False, extra=None):
         if not uri:
             if id:
                 uri = lims.get_uri(cls._URI, id)
@@ -252,7 +252,7 @@ class Entity(object):
         except KeyError:
             return object.__new__(cls)
 
-    def __init__(self, lims, uri=None, id=None, _create_new=False):
+    def __init__(self, lims, uri=None, id=None, _create_new=False, extra=None):
         assert uri or id or _create_new
         if not _create_new:
             if hasattr(self, 'lims'): return
@@ -263,6 +263,7 @@ class Entity(object):
         self.lims = lims
         self._uri = uri
         self.root = None
+        self.extra = extra
 
     def __str__(self):
         return "%s(%s)" % (self.__class__.__name__, self.id)
@@ -1077,6 +1078,7 @@ class Protocol(Entity):
     _URI = 'configuration/protocols'
     _TAG = 'protocol'
 
+    name       = StringAttributeDescriptor('name')
     steps      = NestedEntityListDescriptor('step', ProtocolStep, 'steps')
     properties = NestedAttributeListDescriptor('protocol-property', 'protocol-properties')
 
@@ -1109,8 +1111,8 @@ class Workflow(Entity):
 
     name      = StringAttributeDescriptor("name")
     status    = StringAttributeDescriptor("status")
-    protocols = NestedEntityListDescriptor('protocol', Protocol, 'protocols')
-    stages    = NestedEntityListDescriptor('stage', Stage, 'stages')
+    protocols = NestedEntityListDescriptor('protocol', Protocol, 'protocols', extra=["name"])
+    stages    = NestedEntityListDescriptor('stage', Stage, 'stages', extra=["name"])
 
 
 class ReagentType(Entity):

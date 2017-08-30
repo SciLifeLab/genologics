@@ -74,6 +74,13 @@ class StringAttributeDescriptor(TagDescriptor):
     """
 
     def __get__(self, instance, cls):
+        # Skip loading the instance if we have information in the extra dictionary. This
+        # allows faster loading when the data is available in an overview page. An example is
+        # that names of Stages and Protocols is available in the details page for Workflows.
+
+        # If we have loaded the details for this entity (instance.root is not None), we always use that.
+        if instance.extra is not None and instance.root is None and self.tag in instance.extra:
+            return instance.extra[self.tag]
         instance.get()
         return instance.root.attrib[self.tag]
 
@@ -518,22 +525,26 @@ class NestedStringListDescriptor(StringListDescriptor):
 class NestedEntityListDescriptor(EntityListDescriptor):
     """same as EntityListDescriptor, but works on nested elements"""
 
-    def __init__(self, tag, klass, *args):
+    def __init__(self, tag, klass, rootkey=None, extra=[]):
         super(EntityListDescriptor, self).__init__(tag, klass)
         self.klass = klass
         self.tag = tag
-        self.rootkeys = args
+        self.rootkey = rootkey
+        self.extra_meta = extra
 
     def __get__(self, instance, cls):
         instance.get()
         result = []
         rootnode = instance.root
-        for rootkey in self.rootkeys:
-            rootnode = rootnode.find(rootkey)
+        if self.rootkey:
+            rootnode = rootnode.find(self.rootkey)
         for node in rootnode.findall(self.tag):
-            result.append(self.klass(instance.lims, uri=node.attrib['uri']))
-
+            # NOTE: The name should correspond to the name on the object, not necessarily the same
+            # as the name of the attribute.
+            extra = {extra_name: node.attrib[extra_name] for extra_name in self.extra_meta}
+            result.append(self.klass(instance.lims, uri=node.attrib['uri'], extra=extra))
         return result
+
 
 class MultiPageNestedEntityListDescriptor(EntityListDescriptor):
     """same as NestedEntityListDescriptor, but works on multiple pages, for Queues"""
