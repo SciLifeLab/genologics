@@ -613,6 +613,20 @@ class ReagentLabelList(BaseDescriptor):
                 pass
         return self.value
 
+    def __set__(self, instance, values):
+        instance.get()
+        nodes = instance.root.findall('reagent-label')
+        if not nodes:
+            root = instance.root
+            for value in values:
+                rl_node = ElementTree.SubElement(root, 'reagent-label', name=value)
+
+        elif len(values) != len(nodes):
+            raise ValueError("Mismatching number of reagent labels")
+        else:
+            for node, value in zip(nodes, values):
+                node.attrib['name'] = value
+
 
 class OutputReagentList(BaseDescriptor):
     """
