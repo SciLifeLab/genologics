@@ -619,7 +619,7 @@ class ReagentLabelList(BaseDescriptor):
         if not nodes:
             root = instance.root
             for value in values:
-                rl_node = ElementTree.SubElement(root, 'reagent-label', name=value)
+                ElementTree.SubElement(root, 'reagent-label', name=value)
 
         elif len(values) != len(nodes):
             raise ValueError("Mismatching number of reagent labels")
