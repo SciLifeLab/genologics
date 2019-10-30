@@ -1060,16 +1060,17 @@ class ProtocolStep(Entity):
 
     _TAG = 'step'
 
-    name                    = StringAttributeDescriptor("name")
-    type                    = EntityDescriptor('process-type', Processtype)
-    permittedcontainers     = NestedStringListDescriptor('container-type', 'permitted-containers')
-    permitted_control_types = NestedEntityListDescriptor('control-type', ControlType, 'permitted-control-types')
-    required_reagent_kits   = NestedEntityListDescriptor('reagent-kit', ReagentKit, 'required-reagent-kits')
-    queue_fields            = NestedAttributeListDescriptor('queue-field', 'queue-fields')
-    step_fields             = NestedAttributeListDescriptor('step-field', 'step-fields')
-    sample_fields           = NestedAttributeListDescriptor('sample-field', 'sample-fields')
-    step_properties         = NestedAttributeListDescriptor('step-property', 'step-properties')
-    epp_triggers            = NestedAttributeListDescriptor('epp-trigger', 'epp-triggers')
+    name                         = StringAttributeDescriptor("name")
+    type                         = EntityDescriptor('process-type', Processtype)
+    permittedcontainers          = NestedStringListDescriptor('container-type', 'permitted-containers')
+    permitted_reagent_categories = NestedStringListDescriptor('reagent-category', 'permitted-reagent-categories')
+    permitted_control_types      = NestedEntityListDescriptor('control-type', ControlType, 'permitted-control-types')
+    required_reagent_kits        = NestedEntityListDescriptor('reagent-kit', ReagentKit, 'required-reagent-kits')
+    queue_fields                 = NestedAttributeListDescriptor('queue-field', 'queue-fields')
+    step_fields                  = NestedAttributeListDescriptor('step-field', 'step-fields')
+    sample_fields                = NestedAttributeListDescriptor('sample-field', 'sample-fields')
+    step_properties              = NestedAttributeListDescriptor('step-property', 'step-properties')
+    epp_triggers                 = NestedAttributeListDescriptor('epp-trigger', 'epp-triggers')
 
 
 class Protocol(Entity):
