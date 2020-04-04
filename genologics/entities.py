@@ -461,18 +461,31 @@ class Sample(Entity):
 
 
     @classmethod
-    def create(cls, lims, container, position, udfs=None, **kwargs):
-        """Create an instance of Sample from attributes then post it to the LIMS"""
-        if udfs is None:
-            udfs = {}
+    def create(cls, lims, container, position, **kwargs):
+        """Create an instance of Sample from attributes then post it to the LIMS
+
+        Udfs can be sent in with the kwarg `udfs`. It should be a dictionary-like.
+        """
         if not isinstance(container, Container):
             raise TypeError('%s is not of type Container'%container)
-        instance = super(Sample, cls)._create(lims, creation_tag='samplecreation',udfs=udfs, **kwargs)
+        udfs = kwargs.pop("udfs", None)
+        instance = super(Sample, cls)._create(lims, creation_tag='samplecreation', **kwargs)
 
         location = ElementTree.SubElement(instance.root, 'location')
         ElementTree.SubElement(location, 'container', dict(uri=container.uri))
         position_element = ElementTree.SubElement(location, 'value')
         position_element.text = position
+
+        # NOTE: This is a quick fix. I assume that it must be possible to initialize samples
+        # with UDFs
+        for key, value in udfs.items():
+            attrib = {
+                "name": key,
+                "xmlns:udf": "http://genologics.com/ri/userdefined",
+            }
+            udf = ElementTree.SubElement(instance.root, 'udf:field', attrib=attrib)
+            udf.text = value
+
         data = lims.tostring(ElementTree.ElementTree(instance.root))
         instance.root = lims.post(uri=lims.get_uri(cls._URI), data=data)
         instance._uri = instance.root.attrib['uri']
