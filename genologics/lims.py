@@ -234,6 +234,10 @@ class Lims(object):
                                   start_index=start_index)
         return self._get_instances(ReagentType, params=params)
 
+    def get_containertypes(self, name=None):
+        params = self._get_params(name=name)
+        return self._get_instances(Containertype, params=params)
+
     def get_labs(self, name=None, last_modified=None,
                  udf=dict(), udtname=None, udt=dict(), start_index=None, add_info=False):
         """Get a list of labs, filtered by keyword arguments.
