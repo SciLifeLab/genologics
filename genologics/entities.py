@@ -420,6 +420,16 @@ class File(Entity):
     is_published      = BooleanDescriptor('is-published')
 
 
+class Instrument(Entity):
+    "Instrument"
+    _URI = 'instruments'
+    _PREFIX = 'inst'
+    name = StringDescriptor('name')
+    type = StringDescriptor('type')
+    serial_number = StringDescriptor('serial-number')
+    archived = BooleanDescriptor('archived')
+
+
 class Project(Entity):
     "Project concerning a number of samples; associated with a researcher."
 
@@ -436,6 +446,7 @@ class Project(Entity):
     udt          = UdtDictionaryDescriptor()
     files        = EntityListDescriptor(nsmap('file:file'), File)
     externalids  = ExternalidListDescriptor()
+    instrument = EntityDescriptor('instrument', Instrument)
     # permissions XXX
 
 
@@ -598,7 +609,7 @@ class Process(Entity):
     udt               = UdtDictionaryDescriptor()
     files             = EntityListDescriptor(nsmap('file:file'), File)
     process_parameter = StringDescriptor('process-parameter')
-    instrument        = EntityDescriptor('instrument', Instrument)
+    intrument = StringDescriptor('instrument')
 
     # process_parameters XXX
 
