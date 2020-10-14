@@ -23,6 +23,7 @@ except ImportError:
 from xml.etree import ElementTree
 
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -476,11 +477,43 @@ class Sample(Entity):
 
         Udfs can be sent in with the kwarg `udfs`. It should be a dictionary-like.
         """
-        if not isinstance(container, Container):
-            raise TypeError('%s is not of type Container'%container)
-        udfs = kwargs.pop("udfs", None)
-        instance = super(Sample, cls)._create(lims, creation_tag='samplecreation', **kwargs)
+        instance = cls.create_in_memory_instance(lims, container, position, **kwargs)
+        data = lims.tostring(ElementTree.ElementTree(instance.root))
+        instance.root = lims.post(uri=lims.get_uri(cls._URI), data=data)
+        instance._uri = instance.root.attrib['uri']
+        return instance
 
+    @classmethod
+    def batch_create(cls, lims, in_memory_instances):
+        """
+        Batch creates the samples. The list in_memory_instances is created by calls to
+        `Sample.create_in_memory_instance`
+        """
+        # Create a batch request from all in_memory_instances:
+        batch = ElementTree.Element(nsmap(cls._PREFIX + ':details'))
+
+        for instance in in_memory_instances:
+            element = copy.deepcopy(instance.root)
+            batch.append(element)
+
+        data = lims.tostring(ElementTree.ElementTree(batch))
+        response = lims.post(uri=lims.get_uri('samples/batch/create'), data=data)
+
+        ret = list()
+        for entry in response:
+            uri = entry.attrib['uri']
+            ret.append(Sample(lims=lims, uri=uri))
+        return ret
+
+    @classmethod
+    def create_in_memory_instance(cls, lims, container, position, **kwargs):
+        """
+        Creates a request for creating a single sample object
+        """
+        udfs = kwargs.pop("udfs", list())
+        if not isinstance(container, Container):
+            raise TypeError('%s is not of type Container' % container)
+        instance = super(Sample, cls)._create(lims, creation_tag='samplecreation', **kwargs)
         location = ElementTree.SubElement(instance.root, 'location')
         ElementTree.SubElement(location, 'container', dict(uri=container.uri))
         position_element = ElementTree.SubElement(location, 'value')
@@ -495,10 +528,6 @@ class Sample(Entity):
             }
             udf = ElementTree.SubElement(instance.root, 'udf:field', attrib=attrib)
             udf.text = value
-
-        data = lims.tostring(ElementTree.ElementTree(instance.root))
-        instance.root = lims.post(uri=lims.get_uri(cls._URI), data=data)
-        instance._uri = instance.root.attrib['uri']
         return instance
 
 
@@ -556,8 +585,7 @@ class Udfconfig(Entity):
     first_preset_is_default_value = BooleanDescriptor('first-preset-is-default-value')
     show_in_tables                = BooleanDescriptor('show-in-tables')
     is_editable                   = BooleanDescriptor('is-editable')
-    is_required                   = BooleanDescriptor('is-required')
-    is_deviation                  = BooleanDescriptor('is-deviation') 
+    is_deviation                  = BooleanDescriptor('is-deviation')
     is_controlled_vocabulary      = BooleanDescriptor('is-controlled-vocabulary')
     presets                       = StringListDescriptor('preset')
 
@@ -676,8 +704,8 @@ class Process(Entity):
         return [a for a in artifacts if a.output_type == 'ResultFile']
 
     def analytes(self):
-        """Retreving the output Analytes of the process, if existing. 
-        If the process is not producing any output analytes, the input 
+        """Retreving the output Analytes of the process, if existing.
+        If the process is not producing any output analytes, the input
         analytes are returned. Input/Output is returned as a information string.
         Makes aggregate processes and normal processes look the same."""
         info = 'Output'
