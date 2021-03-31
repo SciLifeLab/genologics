@@ -510,7 +510,7 @@ class Sample(Entity):
         """
         Creates a request for creating a single sample object
         """
-        udfs = kwargs.pop("udfs", list())
+        udfs = kwargs.pop("udfs", dict())
         if not isinstance(container, Container):
             raise TypeError('%s is not of type Container' % container)
         instance = super(Sample, cls)._create(lims, creation_tag='samplecreation', **kwargs)
