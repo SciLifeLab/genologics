@@ -272,13 +272,11 @@ class UdfDictionary(object):
                 value = str(value)
             else:
                 raise NotImplemented("UDF type '%s'" % vtype)
-	    if value is None:
-	        node.text = ''
-	    else:
-		if not isinstance(value, str):
-		    if not self._is_string(value):
-			value = str(value).encode('UTF-8')
-		node.text = value
+            if value is None:
+                value = ''
+            elif not isinstance(value, str):
+                value = str(value).encode('UTF-8')
+            node.text = value
             break
         else:  # Create new entry; heuristics for type
             if self._is_string(value):
