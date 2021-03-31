@@ -20,12 +20,12 @@ lims.check_version()
 
 project = Project(lims, id="P193")
 
-print 'UDFs:'
-pprint(project.udf.items())
+print('UDFs:')
+pprint(list(project.udf.items()))
 
-print 'files:'
+print('files:')
 for file in project.files:
-    print file.content_location
+    print(file.content_location)
 
 project.udf['Delivery Report'] = "http://example.com/delivery_note.pdf"
 project.put()

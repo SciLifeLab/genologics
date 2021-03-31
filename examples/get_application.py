@@ -20,7 +20,7 @@ lims.check_version()
 
 project = Project(lims, id="P193")
 
-print 'UDFs:'
-pprint(project.udf.items())
+print('UDFs:')
+pprint(list(project.udf.items()))
 
-print project.udf['Application']
+print(project.udf['Application'])

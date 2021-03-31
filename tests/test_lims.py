@@ -14,7 +14,7 @@ except NameError: # callable() doesn't exist in Python 3.0 and 3.1
 from sys import version_info
 if version_info[0] == 2:
     from mock import patch, Mock
-    import __builtin__ as builtins
+    import builtins as builtins
 else:
     from unittest.mock import patch, Mock
     import builtins

@@ -3,7 +3,7 @@ import sys
 import warnings
 
 try:
-    from ConfigParser import SafeConfigParser
+    from configparser import SafeConfigParser
 except ImportError:
     from configparser import SafeConfigParser
 

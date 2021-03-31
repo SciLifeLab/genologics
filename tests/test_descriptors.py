@@ -257,10 +257,10 @@ class TestUdfDictionary(TestCase):
 
     def test___setitem__unicode(self):
         assert self._get_udf_value(self.dict1, 'test') == 'stuff'
-        self.dict1.__setitem__('test', u'unicode')
+        self.dict1.__setitem__('test', 'unicode')
         assert self._get_udf_value(self.dict1, 'test') == 'unicode'
 
-        self.dict1.__setitem__(u'test', 'unicode2')
+        self.dict1.__setitem__('test', 'unicode2')
         assert self._get_udf_value(self.dict1, 'test') == 'unicode2'
 
     def test___delitem__(self):

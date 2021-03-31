@@ -18,14 +18,14 @@ lims.check_version()
 
 # Get the sample with the given LIMS identifier, and output its current name.
 sample = Sample(lims, id='JGR58A21')
-print sample, sample.name
+print(sample, sample.name)
 
 sample.name = 'Joels extra-proper sample-20'
 
 # Set the value of one of the UDFs
 sample.udf['Emmas field 2'] = 5
-for key, value in sample.udf.items():
-    print ' ', key, '=', value
+for key, value in list(sample.udf.items()):
+    print(' ', key, '=', value)
 
 sample.put()
-print 'Updated sample', sample
+print('Updated sample', sample)

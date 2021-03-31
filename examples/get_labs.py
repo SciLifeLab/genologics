@@ -19,21 +19,21 @@ lims.check_version()
 
 # Get the list of all projects.
 labs = lims.get_labs(name='SciLifeLab')
-print len(labs), 'labs in total'
+print(len(labs), 'labs in total')
 for lab in labs:
-    print lab, id(lab), lab.name, lab.uri, lab.id
-    print lab.shipping_address.items()
-    for key, value in lab.udf.items():
-        if isinstance(value, unicode):
+    print(lab, id(lab), lab.name, lab.uri, lab.id)
+    print(list(lab.shipping_address.items()))
+    for key, value in list(lab.udf.items()):
+        if isinstance(value, str):
             value = codecs.encode(value, 'UTF-8')
-        print ' ', key, '=', value
+        print(' ', key, '=', value)
     udt = lab.udt
     if udt:
-        print 'UDT:', udt.udt
-        for key, value in udt.items():
-            if isinstance(value, unicode):
+        print('UDT:', udt.udt)
+        for key, value in list(udt.items()):
+            if isinstance(value, str):
                 value = codecs.encode(value, 'UTF-8')
-            print ' ', key, '=', value
+            print(' ', key, '=', value)
 
 lab = Lab(lims, id='2')
-print lab, id(lab), lab.name, lab.uri, lab.id
+print(lab, id(lab), lab.name, lab.uri, lab.id)

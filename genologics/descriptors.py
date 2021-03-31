@@ -11,7 +11,7 @@ from genologics.constants import nsmap
 try:
     from urllib.parse import urlsplit, urlparse, parse_qs, urlunparse
 except ImportError:
-    from urlparse import urlsplit, urlparse, parse_qs, urlunparse
+    from urllib.parse import urlsplit, urlparse, parse_qs, urlunparse
 
 from decimal import Decimal
 import datetime
@@ -157,7 +157,7 @@ class UdfDictionary(object):
 
     def _is_string(self, value):
         try:
-            return isinstance(value, basestring)
+            return isinstance(value, str)
         except:
             return isinstance(value, str)
 
@@ -331,7 +331,7 @@ class UdfDictionary(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return self.__next__()
 
     def __next__(self):

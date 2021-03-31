@@ -19,8 +19,8 @@ import requests
 from sys import version_info
 
 if version_info[0] == 2:
-    from urlparse import urljoin
-    from urllib import urlencode
+    from urllib.parse import urljoin
+    from urllib.parse import urlencode
 else:
     from urllib.parse import urljoin
     from urllib.parse import urlencode
@@ -489,7 +489,7 @@ class Lims(object):
     def _get_params(self, **kwargs):
         "Convert keyword arguments to a kwargs dictionary."
         result = dict()
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             if value is None: continue
             result[key.replace('_', '-')] = value
         return result
@@ -497,11 +497,11 @@ class Lims(object):
     def _get_params_udf(self, udf=dict(), udtname=None, udt=dict()):
         "Convert UDF-ish arguments to a params dictionary."
         result = dict()
-        for key, value in udf.items():
+        for key, value in list(udf.items()):
             result["udf.%s" % key] = value
         if udtname is not None:
             result['udt.name'] = udtname
-        for key, value in udt.items():
+        for key, value in list(udt.items()):
             result["udt.%s" % key] = value
         return result
 
@@ -564,7 +564,7 @@ class Lims(object):
             for node in root.getchildren():
                 instance = instance_map[node.attrib['limsid']]
                 instance.root = node
-        return instance_map.values()
+        return list(instance_map.values())
 
     def put_batch(self, instances):
         """Update multiple instances using a single batch request."""

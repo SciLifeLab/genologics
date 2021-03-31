@@ -27,28 +27,28 @@ lims.check_version()
 ##     print len(containers), state, 'containers'
 
 containers = lims.get_containers(type='96 well plate')
-print len(containers)
+print(len(containers))
 
 container = containers[2]
-print container, container.occupied_wells
+print(container, container.occupied_wells)
 
 placements = container.get_placements()
-for location, artifact in sorted(placements.iteritems()):
-    print location, artifact.name, id(artifact), repr(artifact), artifact.root
+for location, artifact in sorted(placements.items()):
+    print(location, artifact.name, id(artifact), repr(artifact), artifact.root)
 
 containertype = container.type
-print containertype, containertype.name, containertype.x_dimension, containertype.y_dimension
+print(containertype, containertype.name, containertype.x_dimension, containertype.y_dimension)
 
 
 
 containers = lims.get_containers(type='Illumina Flow Cell',state='Populated')
 for container in containers:
-	print container.name
-	print container.id
-	print container.placements.keys()
+	print(container.name)
+	print(container.id)
+	print(list(container.placements.keys()))
 	arts=lims.get_artifacts(containername=container.name)
 	for art in arts:
-		print art.name
-		print art.type
-		print art.udf.items()
-		print art.parent_process.type.name
+		print(art.name)
+		print(art.type)
+		print(list(art.udf.items()))
+		print(art.parent_process.type.name)

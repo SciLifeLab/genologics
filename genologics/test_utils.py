@@ -26,7 +26,7 @@ def patched_get(*args, **kwargs):
         uri=kwargs['uri']
     else:
         for arg in args:
-            if isinstance(arg, str) or isinstance(arg, unicode):
+            if isinstance(arg, str) or isinstance(arg, str):
                 uri = arg
     if 'params' in kwargs:
         params=kwargs['params']
@@ -48,7 +48,7 @@ def dump_source_xml(lims):
     to be used with patched_get"""
     final_string = []
     final_string.append('{')
-    for k, v in lims.cache.iteritems():
+    for k, v in lims.cache.items():
         final_string.append("'{0}':".format(k))
         v.get()
         final_string.append('"""{0}""",'.format(v.xml().replace('\n', "\n")))
