@@ -238,8 +238,10 @@ class UdfDictionary(object):
 
     def __setitem__(self, key, value):
         self._lookup[key] = value
+        key_found_in_xml = False
         for node in self._elems:
             if node.attrib['name'] != key: continue
+            key_found_in_xml = True
             vtype = node.attrib['type'].lower()
 
             if value is None:
@@ -278,7 +280,8 @@ class UdfDictionary(object):
                 value = str(value).encode('UTF-8')
             node.text = value
             break
-        else:  # Create new entry; heuristics for type
+
+        if not key_found_in_xml: # Create new entry; heuristics for type
             if self._is_string(value):
                 vtype = '\n' in value and 'Text' or 'String'
             elif isinstance(value, bool):
