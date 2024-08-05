@@ -1,0 +1,10 @@
+mock
+mypy
+pipreqs
+pytest
+pytest-cov
+ruff
+sphinxcontrib-programoutput
+types-requests
+types-setuptools
+types-six

@@ -6,8 +6,8 @@ A basic module for interacting with the Illumina Basespace Clarity LIMS server v
 its REST API. The goal is to provide simple access to the most common
 entities and their attributes in a reasonably Pythonic fashion.
 
-
 ### Compatibility
+
 From version **1.0.0** the scripts have been ported to support **Python 3**,
 and it is backwards compatible with **Python 2** as well. The previous versions
 (**<0.4.6**) are only compatible with **Python 2**.
@@ -15,7 +15,7 @@ and it is backwards compatible with **Python 2** as well. The previous versions
 ### Design
 
 All instances of Project, Sample, Artifact, etc should be obtained using
-the get_* methods of the Lims class, which keeps an internal cache of
+the get\_\* methods of the Lims class, which keeps an internal cache of
 current instances. The idea is to create one and only one instance in
 a running script for representing an item in the database. If one has
 more than one instance representing the same item, there is a danger that
@@ -77,7 +77,6 @@ Usage example scripts are provided in the subdirectory 'examples'.
 NOTE: The example files rely on specific entities and configurations
 on the server, and use base URI, user name and password, so to work
 for your server, all these must be reviewed and modified.
-
 
 ### EPPs
 

@@ -1,0 +1,25 @@
+[tool.ruff.lint]
+select = [
+    #         Ruff default rules
+    # ------------------------------
+    "E4", # pycodestyle Imports
+    "E7", # pycodestyle Statements
+    "E9", # pycodestyle Runtime
+    "F",  # Pyflakes
+
+    #         Additional    Comment
+    # ------------------------------------------------------
+    "I",  # isort         Best-practice sorting of imports
+    "UP", # pyupgrade     Make sure syntax is up-to-date
+]
+ignore = [
+    "E402", # Module level import not at top of file
+    "E722", # Do not use bare 'except'
+    "E741", # Ambiguous variable name
+]
+
+
+[tool.mypy]
+ignore_missing_imports = true
+follow_imports = 'skip'
+exclude = '^docs/'

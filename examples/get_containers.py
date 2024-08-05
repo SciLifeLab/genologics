@@ -7,12 +7,9 @@ Usage example: Get some containers.
 Per Kraulis, Science for Life Laboratory, Stockholm, Sweden.
 """
 
-import codecs
-
-from genologics.lims import *
-
 # Login parameters for connecting to a LIMS instance.
-from genologics.config import BASEURI, USERNAME, PASSWORD
+from genologics.config import BASEURI, PASSWORD, USERNAME
+from genologics.lims import Lims
 
 # Create the LIMS interface instance, and check the connection and version.
 lims = Lims(BASEURI, USERNAME, PASSWORD)
@@ -26,7 +23,7 @@ lims.check_version()
 ##     containers = lims.get_containers(state=state)
 ##     print len(containers), state, 'containers'
 
-containers = lims.get_containers(type='96 well plate')
+containers = lims.get_containers(type="96 well plate")
 print(len(containers))
 
 container = containers[2]
@@ -37,18 +34,22 @@ for location, artifact in sorted(placements.items()):
     print(location, artifact.name, id(artifact), repr(artifact), artifact.root)
 
 containertype = container.type
-print(containertype, containertype.name, containertype.x_dimension, containertype.y_dimension)
+print(
+    containertype,
+    containertype.name,
+    containertype.x_dimension,
+    containertype.y_dimension,
+)
 
 
-
-containers = lims.get_containers(type='Illumina Flow Cell',state='Populated')
+containers = lims.get_containers(type="Illumina Flow Cell", state="Populated")
 for container in containers:
-	print(container.name)
-	print(container.id)
-	print(list(container.placements.keys()))
-	arts=lims.get_artifacts(containername=container.name)
-	for art in arts:
-		print(art.name)
-		print(art.type)
-		print(list(art.udf.items()))
-		print(art.parent_process.type.name)
+    print(container.name)
+    print(container.id)
+    print(list(container.placements.keys()))
+    arts = lims.get_artifacts(containername=container.name)
+    for art in arts:
+        print(art.name)
+        print(art.type)
+        print(list(art.udf.items()))
+        print(art.parent_process.type.name)

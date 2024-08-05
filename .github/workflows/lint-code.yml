@@ -1,0 +1,148 @@
+name: Lint code
+on: [push, pull_request]
+
+jobs:
+  # Use ruff to check for code style violations
+  ruff-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+      - name: ruff --> Check for style violations
+        # Configured in pyproject.toml
+        run: ruff check .
+
+  # Use ruff to check code formatting
+  ruff-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+      - name: ruff --> Check code formatting
+        run: ruff format --check .
+
+  # Use mypy for static type checking
+  mypy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy
+      # Start by installing type stubs
+      - name: mypy --> Install stubs
+        run: echo -e "y" | mypy --install-types . || exit 0
+      - name: mypy --> Static type checking
+        # Configured in pyprojet.toml
+        run: mypy .
+
+  # Use pipreqs to check for missing dependencies
+  pipreqs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run pipreqs
+        run: |
+          pipreqs --savepath pipreqs.txt 2>&1 | tee pipreqs_output.log
+          if grep -q 'WARNING: Package .* does not exist or network problems' pipreqs_output.log; then
+            missing_packages=$(grep 'WARNING: Package .* does not exist or network problems' pipreqs_output.log | sed -E 's/.*Package "(.*)" does not exist.*/\1/')
+            echo "ERROR: Add unresolved packages to requirements. Missing package(s): $missing_packages. Example: '<pkg> @ git+https://github.com/<author>/<repo>.git'"
+            exit 1
+          fi
+
+      - name: Compare requirements
+        run: |
+          # Extract and sort package names
+          awk -F'(=|==|>|>=|<|<=| @ )' '{print $1}' requirements.txt | tr '[:upper:]' '[:lower:]' | sort -u > requirements.compare
+          awk -F'(=|==|>|>=|<|<=| @ )' '{print $1}' pipreqs.txt | tr '[:upper:]' '[:lower:]' | sort -u > pipreqs.compare
+
+          # Compare package lists
+          if cmp -s requirements.compare pipreqs.compare
+          then
+            echo "Requirements are the same"
+
+            exit 0
+          else
+            echo "Requirements are different"
+            echo ""
+
+            echo "=== current requirements.txt ==="
+            echo ""
+            cat requirements.compare
+            echo ""
+
+            echo "=== pipreqs requirements ==="
+            echo ""
+            cat pipreqs.compare
+
+            exit 1
+          fi
+
+    # Use Prettier to check various file formats
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Prettier
+        run: npm install -g prettier
+
+      - name: Run Prettier --check
+        run: prettier --check .
+
+  # Use editorconfig to check all remaining file formats
+  editorconfig:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install editorconfig-checker
+        run: npm install -g editorconfig-checker
+
+      - name: editorconfig --> Lint files
+        run: editorconfig-checker $(git ls-files | grep -v '.py\|.md\|.json\|.yml\|.yaml\|.html\|.Makefile\|.rst')

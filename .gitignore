@@ -14,3 +14,4 @@ docs/*.html
 scripts/*.csv
 scripts/*.log
 scripts/*.out
+.DS_Store
