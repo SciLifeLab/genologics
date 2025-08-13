@@ -10,12 +10,11 @@ import csv
 import logging
 import os
 import sys
+from importlib.metadata import PackageNotFoundError, version
 from logging.handlers import RotatingFileHandler
 from shutil import copy
 from time import localtime, strftime
 
-import pkg_resources
-from pkg_resources import DistributionNotFound
 from requests import HTTPError
 
 from genologics.config import MAIN_LOG
@@ -83,13 +82,10 @@ class EppLogger:
         logging.info(f"Executing file: {sys.argv[0]}")
         logging.info(f"with parameters: {sys.argv[1:]}")
         try:
-            logging.info(
-                f"Version of {self.PACKAGE}: "
-                + pkg_resources.require(self.PACKAGE)[0].version
-            )
-        except DistributionNotFound as e:
+            logging.info(f"Version of {self.PACKAGE}: {version(self.PACKAGE)}")
+        except PackageNotFoundError as e:
             logging.error(e)
-            logging.error(f"Make sure you have the {self.PACKAGE} " "package installed")
+            logging.error(f"Make sure you have the {self.PACKAGE} package installed")
             sys.exit(-1)
         return self
 
@@ -182,7 +178,7 @@ class EppLogger:
                         f.write("=" * 80 + "\n")
             except HTTPError:  # Probably no artifact found, skip prepending
                 print(
-                    ("No log file artifact found " f"for id: {log_file_name}"),
+                    (f"No log file artifact found for id: {log_file_name}"),
                     file=sys.stderr,
                 )
             except OSError as e:  # Probably some path was wrong in copy
@@ -414,7 +410,7 @@ class CopyField:
         }
 
         logging.info(
-            "Updated {d_elt_type} udf: {d_udf}, from {su} to " "{nv}.".format(**d)
+            "Updated {d_elt_type} udf: {d_udf}, from {su} to {nv}.".format(**d)
         )
 
     def copy_udf(self, changelog_f=None):

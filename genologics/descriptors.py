@@ -278,7 +278,7 @@ class UdfDictionary:
                 value = str(value)
             else:
                 raise NotImplementedError(
-                    f"Cannot handle value of type '{type(value)}'" " for UDF"
+                    f"Cannot handle value of type '{type(value)}' for UDF"
                 )
             if self._udt:
                 root = self.rootnode.find(nsmap("udf:type"))
